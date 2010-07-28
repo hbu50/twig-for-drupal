@@ -1,18 +1,13 @@
 <?php
 /* Twig template engine v0.9.9 (c) Twig Team / Fabien Potencier / Sensio Labs
+ * see http://www.twig-project.org/
  *
  * Drupal 6 addaption with fallback 1.01 René Bakx (27-07-2010)
  *
- * You  need PHP 5.2.4 or higher to use this template engine
- *
- * more info can be found on http://renebakx.nl
+ * You *need* PHP 5.2.4 or higher to use this template engine
+ * more info can be found on http://renebakx.nl/url_to_be_set
  * 
 */
-
-
-// include the TWIG library
-
-
 
 
 /**
@@ -40,47 +35,66 @@ function twig_init($theme) {
 
 /**
  * Implementation of hook_theme()
+ *
+ * Registers both twig and php_template functions and templates
+ * which is needed to perform the fallback to .tpl.php
+ *
  * @link http://api.drupal.org/api/function/hook_theme/6
- * @return string
+ * @return <array>
  */
 function twig_theme($existing, $type, $theme, $path) {
-    require_once(drupal_get_path('theme_engine', 'phptemplate') . '/phptemplate.engine');
     $twigFunctions = drupal_find_theme_functions($existing, array('twig', $theme));
     $twigTemplates = drupal_find_theme_templates($existing, twig_extension(), $path);
+
+    require_once(drupal_get_path('theme_engine', 'phptemplate') . '/phptemplate.engine');
     $phpTemplate  =  phptemplate_theme($existing, $type, $theme, $path);
     return $twigFunctions+$twigTemplates+$phpTemplate;
 }
 
 /**
+ * Implementation of hook ENGINE_render_template
+ * 
+ * Checks if the twig template is available or else do the fallback to
+ * the php_template drupal engine
  *
  * @param <string> $template template filename
  * @param <array> $variables variables to be assigned to template
+ * @return <string> rendered template
  */
 function twig_render_template($template,$variables = array()) {
     if (file_exists($template)) {
         return twig_render($template,$variables);
     } else {
-        // fallback to default TPL engine, can be a bit slower, but hey.. it's not called fallback for nothing ;)
-        $paths = twig_get_discovered_templates();
-        $chunks = array_reverse(explode("/",$template));
-        $variables["template_files"][] = str_replace(twig_extension(),"",$chunks[0]);
-        $variables["template_files"] = array_reverse($variables["template_files"]);
-        $template = drupal_discover_template($paths, $variables["template_files"], '.tpl.php');
         return twig_render_default_template($template,$variables);
     }
 }
 
-
+/**
+ * Discovers the needed .tpl.php to render, and renders it in php_template using
+ * variables
+ *
+ * Todo : Could be a little bit more clever, by just removing the twig_extension()
+ *
+ * @param <type> $template
+ * @param <type> $variables
+ * @return <type>
+ */
 function twig_render_default_template($template,$variables) {
-    extract($variables, EXTR_SKIP);  // Extract the variables to a local namespace
-    ob_start();                      // Start output buffering
-    require $template;          // Include the template file
-    $contents = ob_get_contents();   // Get the contents of the buffer
-    ob_end_clean();                  // End buffering and discard
-    return $contents;                // Return the contents
+    $paths = twig_get_discovered_templates();
+    $chunks = array_reverse(explode("/",$template));
+    $variables["template_files"][] = str_replace(twig_extension(),"",$chunks[0]);
+    $variables["template_files"] = array_reverse($variables["template_files"]);
+    $template = drupal_discover_template($paths, $variables["template_files"], '.tpl.php');
+    return theme_render_template($template,$variables);
 }
 
-
+/**
+ * Builds and caches the default template locations list
+ * needed for the fallback rendering, cause you can not
+ * loop things trough drupal twice
+ *
+ * @return <array>
+ */
 function twig_get_discovered_templates() {
     $tplFolders = cache_get('twig_tpl_paths');
     if ($tplFolders == 0) {
@@ -116,7 +130,13 @@ function twig_init_cache($clear=false) {
     }
     return $path;
 }
-
+/**
+ * Renders template using twig
+ *
+ * @param <string> $template
+ * @param <arrray> $variables
+ * @return <string>
+ */
 function twig_render($template,$variables) {
     try {
         $twig = twig_get_singleton();
@@ -152,7 +172,9 @@ function twig_get_singleton() {
 }
 
 /**
- * returns error message, can be extended to your own liking
+ * returns error message, can be extended to your own liking, or hook it into
+ * watchdog. It's needed because TWIG has own syntax checking and throws
+ * exceptions on errors.
  *
  * @param <object> $error spl error object
  * @return string
@@ -160,7 +182,3 @@ function twig_get_singleton() {
 function twig_error($error) {
     return $error->getMessage();
 }
-
-
-
-?>
