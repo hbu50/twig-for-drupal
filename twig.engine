@@ -9,6 +9,10 @@
  * 
 */
 
+/* register Twig autoloader system */
+
+require_once(drupal_get_path('theme_engine', 'twig') . '/lib/Twig/Autoloader.php');
+Twig_Autoloader::register();
 
 /**
  * registers the .tpl.html extension for twig templates
@@ -53,7 +57,7 @@ function twig_theme($existing, $type, $theme, $path) {
 
 /**
  * Implementation of hook ENGINE_render_template
- * 
+ *
  * Checks if the twig template is available or else do the fallback to
  * the php_template drupal engine
  *
@@ -152,18 +156,19 @@ function twig_render($template,$variables) {
  * @return <object> Twig_Environment
 */
 function twig_get_singleton() {
-    require_once(drupal_get_path('theme_engine', 'twig') . '/lib/Twig/Autoloader.php');
+
     static $twig_engine;
     if (!is_object($twig_engine)) {
         Twig_Autoloader::register();
         try {
             $twigEnvironment = array();
-            $cache = twig_init_cache();
-            if ($cache) {
-                $twigEnvironment['cache'] = $cache;
-            }
+//            $cache = twig_init_cache(TRUE);
+//            if ($cache) {
+//                $twigEnvironment['cache'] = $cache;
+//            }
             $loader          = new Twig_Loader_Filesystem(realpath('./').DIRECTORY_SEPARATOR);
             $twig_engine     = new Twig_Environment($loader,$twigEnvironment);
+            $twig_engine->addExtension(new Twig_Drupal_Extension());
         } catch(Exception $e) {
             echo twig_error($e);
         }
@@ -182,3 +187,49 @@ function twig_get_singleton() {
 function twig_error($error) {
     return $error->getMessage();
 }
+
+
+class Twig_Drupal_Extension extends Twig_Extension {
+
+
+    public function getTokenParsers() {
+        return array(
+            new Twig_Drupal_TokenParser()
+        );
+    }
+
+    public function getName() {
+        return 'drupal';
+    }
+}
+
+class Twig_Drupal_TokenParser extends Twig_TokenParser {
+
+
+    public function parse(Twig_Token $token) {
+         $lineno = $token->getLine();
+         $value = $this->parser->getStream()->expect(Twig_Token::STRING_TYPE)->getValue();
+         $this->parser->getStream()->expect(Twig_Token::BLOCK_END_TYPE);
+         return new Twig_Drupal_Node($expr, $variables, $token->getLine(), $this->getTag());
+    }
+    
+    public function getTag() {
+        return 'drupal';
+    }
+}
+
+class Twig_Drupal_Node extends Twig_Node {
+
+  public function __construct(Twig_Node_Expression $expr, Twig_Node_Expression $variables = null, $lineno, $tag = null)
+    {
+        parent::__construct(array('expr' => $expr, 'variables' => $variables), array(), $lineno, $tag);
+    }
+
+
+    public function compile($compiler) {
+        $compiler->addDebugInfo($this)
+                ->write($this->value.'()')
+                ->raw(";\n");
+    }
+}
+
