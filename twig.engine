@@ -1,0 +1,166 @@
+<?php
+/* Twig template engine v0.9.9 (c) Twig Team / Fabien Potencier / Sensio Labs
+ *
+ * Drupal 6 addaption with fallback 1.01 René Bakx (27-07-2010)
+ *
+ * You  need PHP 5.2.4 or higher to use this template engine
+ *
+ * more info can be found on http://renebakx.nl
+ * 
+*/
+
+
+// include the TWIG library
+
+
+
+
+/**
+ * registers the .tpl.html extension for twig templates
+ * @return string
+ */
+function twig_extension() {
+    return ".tpl.html";
+}
+
+
+/**
+ * Implementation of hook_init()
+ * include the current theme template.php file.
+ * @param <object> $theme
+ */
+function twig_init($theme) {
+    $file = dirname($theme->filename) .'/template.php';
+    if (file_exists($file)) {
+        include_once "./$file";
+    }
+
+
+}
+
+/**
+ * Implementation of hook_theme()
+ * @link http://api.drupal.org/api/function/hook_theme/6
+ * @return string
+ */
+function twig_theme($existing, $type, $theme, $path) {
+    require_once(drupal_get_path('theme_engine', 'phptemplate') . '/phptemplate.engine');
+    $twigFunctions = drupal_find_theme_functions($existing, array('twig', $theme));
+    $twigTemplates = drupal_find_theme_templates($existing, twig_extension(), $path);
+    $phpTemplate  =  phptemplate_theme($existing, $type, $theme, $path);
+    return $twigFunctions+$twigTemplates+$phpTemplate;
+}
+
+/**
+ *
+ * @param <string> $template template filename
+ * @param <array> $variables variables to be assigned to template
+ */
+function twig_render_template($template,$variables = array()) {
+    if (file_exists($template)) {
+        return twig_render($template,$variables);
+    } else {
+        // fallback to default TPL engine, can be a bit slower, but hey.. it's not called fallback for nothing ;)
+        $paths = twig_get_discovered_templates();
+        $chunks = array_reverse(explode("/",$template));
+        $variables["template_files"][] = str_replace(twig_extension(),"",$chunks[0]);
+        $variables["template_files"] = array_reverse($variables["template_files"]);
+        $template = drupal_discover_template($paths, $variables["template_files"], '.tpl.php');
+        return twig_render_default_template($template,$variables);
+    }
+}
+
+
+function twig_render_default_template($template,$variables) {
+    extract($variables, EXTR_SKIP);  // Extract the variables to a local namespace
+    ob_start();                      // Start output buffering
+    require $template;          // Include the template file
+    $contents = ob_get_contents();   // Get the contents of the buffer
+    ob_end_clean();                  // End buffering and discard
+    return $contents;                // Return the contents
+}
+
+
+function twig_get_discovered_templates() {
+    $tplFolders = cache_get('twig_tpl_paths');
+    if ($tplFolders == 0) {
+        $paths = array();
+        $tplHooks = theme_get_registry();
+        foreach($tplHooks as $hook => $data) {
+            $paths = array_merge($paths,$data["theme paths"]);
+        }
+        $tempFolders = array_unique($paths);
+        cache_set('twig_tpl_paths', $tempFolders, 'cache',CACHE_PERMANENT);
+        $return = $tempFolders;
+    } else {
+        $return = $tplFolders->data;
+    }
+    return $return;
+}
+/**
+ * init or set the cache for twig to store compiled templates
+ * @return <string> path to twig cache
+ */
+function twig_init_cache($clear=false) {
+    $path = file_directory_path().DIRECTORY_SEPARATOR.'twig_cache';
+    if (!is_dir($path)) {
+        mkdir($path);
+    }
+    if (!is_writable($path)) {
+        $path = FALSE;
+    }
+    if ($clear && $path) {
+        foreach(glob($path.'*.*') as $file) {
+            unlink($file);
+        }
+    }
+    return $path;
+}
+
+function twig_render($template,$variables) {
+    try {
+        $twig = twig_get_singleton();
+        $template = $twig->loadTemplate($template);
+        $content = $template->render($variables);
+    } catch (Exception $e) {
+        $content = twig_error($e);
+    }
+    return $content;
+}
+/*
+ * Returns a singleton version of the twig template enginge\
+ * @return <object> Twig_Environment
+*/
+function twig_get_singleton() {
+    require_once(drupal_get_path('theme_engine', 'twig') . '/lib/Twig/Autoloader.php');
+    static $twig_engine;
+    if (!is_object($twig_engine)) {
+        Twig_Autoloader::register();
+        try {
+            $twigEnvironment = array();
+            $cache = twig_init_cache();
+            if ($cache) {
+                $twigEnvironment['cache'] = $cache;
+            }
+            $loader          = new Twig_Loader_Filesystem(realpath('./').DIRECTORY_SEPARATOR);
+            $twig_engine     = new Twig_Environment($loader,$twigEnvironment);
+        } catch(Exception $e) {
+            echo twig_error($e);
+        }
+    }
+    return $twig_engine;
+}
+
+/**
+ * returns error message, can be extended to your own liking
+ *
+ * @param <object> $error spl error object
+ * @return string
+ */
+function twig_error($error) {
+    return $error->getMessage();
+}
+
+
+
+?>
