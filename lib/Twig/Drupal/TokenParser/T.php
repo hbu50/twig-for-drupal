@@ -22,7 +22,7 @@ class Twig_Drupal_TokenParser_T extends Twig_TokenParser {
                 $expressions = array("lineno" => $lineno,"string" => $stream->getCurrent()->getValue());
                 $stream->next();
             }
-           if ($stream->test(Twig_Token::NAME_TYPE,array('string','STRING','bar','BAR'))) {
+           if ($stream->test(Twig_Token::NAME_TYPE,array('lang','LANG','string','STRING'))) {
                 $name = strtolower($stream->getCurrent()->getValue());
                 $stream->next();
                 $stream->expect(Twig_Token::OPERATOR_TYPE);

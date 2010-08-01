@@ -10,7 +10,6 @@
 */
 
 /* register Twig autoloader system */
-
 require_once(drupal_get_path('theme_engine', 'twig') . '/lib/Twig/Autoloader.php');
 Twig_Autoloader::register();
 
@@ -168,14 +167,22 @@ function twig_get_singleton() {
             if ($cache) {
                 $twigEnvironment['cache'] = $cache;
             }
-            $loader          = new Twig_Loader_Filesystem(realpath('./').DIRECTORY_SEPARATOR);
+
+            //-- Make sure 'include' works for the current theme
+            $paths = array();
+            $paths[] = realpath('./') . base_path() . path_to_theme() . '/';
+            $paths[] = realpath('./').  DIRECTORY_SEPARATOR;
+
+            $loader          = new Twig_Loader_Filesystem($paths);
             $twig_engine     = new Twig_Environment($loader,$twigEnvironment);
+
             // hook in the drupal tags etc.
             $twig_engine->addExtension(new Twig_Drupal_Extension());
         } catch(Exception $e) {
             echo twig_error($e);
         }
     }
+
     return $twig_engine;
 }
 
