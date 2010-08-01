@@ -127,8 +127,9 @@ function twig_init_cache($clear=false) {
     if (!is_writable($path)) {
         $path = FALSE;
     }
+
     if ($clear && $path) {
-        foreach(glob($path.'*.*') as $file) {
+        foreach(glob($path.'/*.*') as $file) {
             unlink($file);
         }
     }
@@ -162,12 +163,14 @@ function twig_get_singleton() {
         Twig_Autoloader::register();
         try {
             $twigEnvironment = array();
-//            $cache = twig_init_cache(TRUE);
-//            if ($cache) {
-//                $twigEnvironment['cache'] = $cache;
-//            }
+            $cache = twig_init_cache(true);
+            $twigEnvironment['debug'] = true;
+            if ($cache) {
+                $twigEnvironment['cache'] = $cache;
+            }
             $loader          = new Twig_Loader_Filesystem(realpath('./').DIRECTORY_SEPARATOR);
             $twig_engine     = new Twig_Environment($loader,$twigEnvironment);
+            // hook in the drupal tags etc.
             $twig_engine->addExtension(new Twig_Drupal_Extension());
         } catch(Exception $e) {
             echo twig_error($e);
@@ -187,49 +190,3 @@ function twig_get_singleton() {
 function twig_error($error) {
     return $error->getMessage();
 }
-
-
-class Twig_Drupal_Extension extends Twig_Extension {
-
-
-    public function getTokenParsers() {
-        return array(
-            new Twig_Drupal_TokenParser()
-        );
-    }
-
-    public function getName() {
-        return 'drupal';
-    }
-}
-
-class Twig_Drupal_TokenParser extends Twig_TokenParser {
-
-
-    public function parse(Twig_Token $token) {
-         $lineno = $token->getLine();
-         $value = $this->parser->getStream()->expect(Twig_Token::STRING_TYPE)->getValue();
-         $this->parser->getStream()->expect(Twig_Token::BLOCK_END_TYPE);
-         return new Twig_Drupal_Node($expr, $variables, $token->getLine(), $this->getTag());
-    }
-    
-    public function getTag() {
-        return 'drupal';
-    }
-}
-
-class Twig_Drupal_Node extends Twig_Node {
-
-  public function __construct(Twig_Node_Expression $expr, Twig_Node_Expression $variables = null, $lineno, $tag = null)
-    {
-        parent::__construct(array('expr' => $expr, 'variables' => $variables), array(), $lineno, $tag);
-    }
-
-
-    public function compile($compiler) {
-        $compiler->addDebugInfo($this)
-                ->write($this->value.'()')
-                ->raw(";\n");
-    }
-}
-
