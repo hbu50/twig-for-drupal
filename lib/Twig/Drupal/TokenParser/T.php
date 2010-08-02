@@ -1,11 +1,13 @@
 <?php
 /* Maps the T tag to the drupal t() function
  * 
- * usage :
- * {%t "foo" %}  translage foo
- * or
- * {%t string="foo" lang="bar" %} translate foo in language bar
- *
+* usage :
+* {%t "foo" %}  translage foo
+* or
+* {%t string="foo" lang="bar" %} translate foo in language bar
+*
+* Part of the Drupal twig extension distribution
+* http://renebakx.nl/twig-for-drupal
 */
 
 class Twig_Drupal_TokenParser_T extends Twig_TokenParser {
@@ -28,10 +30,18 @@ class Twig_Drupal_TokenParser_T extends Twig_TokenParser {
         return new Twig_Drupal_Node_T($expressions[0]);
     }
 
+    /**
+     * Parses the advanced token stream
+     * That stream allways consists of
+     * Name:operator:string to form the param=value pair
+     *
+     * @param <twig_token_stream> $stream
+     * @return <type>
+     */
     private function parseComplex(&$stream) {
         $parameters = array();
         while (!$stream->test(Twig_Token::BLOCK_END_TYPE)) {
-            // parameters should always be name->operator->string
+
             if ($stream->getCurrent()->getType() == Twig_Token::NAME_TYPE) {
                 $parameters["lineno"] = $this->parser->getCurrentToken()->getLine();
                 $name = strtolower($stream->getCurrent()->getValue());
@@ -47,6 +57,5 @@ class Twig_Drupal_TokenParser_T extends Twig_TokenParser {
     public function getTag() {
         return 't';
     }
-
 }
 ?>
