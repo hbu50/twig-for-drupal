@@ -2,9 +2,11 @@
 /* Maps the L tag to the drupal l() function
  * 
 * usage :
-* {%l "bar" url="http://foo" %}  returns <a href='http://foo'>bar</a>
+* {%l "bar" url="http://foo" %}  returns l('bar',"'http://foo")
 * or
-* {%l "bar" url="http://foo" options=['class'='foobarclass']  %}  returns <a href='http://foo' class="foobarclass">bar</a>
+* {%l "bar" url="http://foo" options=['class'='foobarclass']  %}  returns l('bar',"'http://foo",array('class='='foobarclass')
+*
+* url can also be path to keep it more in drupal lingo :)
 *
 * for more information about the l() usage in drupal see http://api.drupal.org/api/function/l/6
 *
@@ -18,52 +20,34 @@ class Twig_Drupal_TokenParser_L extends Twig_TokenParser {
 
         $lineno = $token->getLine();
         $stream = $this->parser->getStream();
+        $expression = array();
+        while(!$stream->test(Twig_Token::BLOCK_END_TYPE)) {
+            if ($stream->test(Twig_Token::STRING_TYPE)) {
+                $expressions["string"]  = $stream->getCurrent()->getValue();
+            }
 
-        # echo "<pre>".$stream."</pre>";
-        
-        $expressions = array();
-        $loop = false;
-        while(!$loop) {
-            echo $stream->look()->getType()."<BR>";
-           
-            if ($stream->look()->getType() == Twig_Token::BLOCK_END_TYPE) {
-                 echo "end of tag";
-                $loop = true;
-                continue;
-               
-           } 
-        }
-       $stream->expect(Twig_Token::BLOCK_END_TYPE);
-        var_dump($expressions);
-        #   return new Twig_Drupal_Node_T($expressions[0]);
-    }
-
-    /**
-     * Parses the advanced token stream
-     * That stream allways consists of
-     * Name:operator:string to form the param=value pair
-     *
-     * @param <twig_token_stream> $stream
-     * @return <type>
-     */
-    private function parseComplex(&$stream) {
-        $parameters = array();
-        while (!$stream->test(Twig_Token::BLOCK_END_TYPE)) {
-
-            if ($stream->getCurrent()->getType() == Twig_Token::NAME_TYPE) {
-                $parameters["lineno"] = $this->parser->getCurrentToken()->getLine();
-                $name = strtolower($stream->getCurrent()->getValue());
+            if ($stream->test(Twig_Token::NAME_TYPE,array('url','URL','path','PATH'))) {
                 $stream->next();
                 $stream->expect(Twig_Token::OPERATOR_TYPE);
-                $parameters[$name] = $stream->getCurrent()->getValue();
+                $expressions["url"] = $stream->getCurrent()->getValue();
             }
+
+//            if ($stream->test(Twig_Token::NAME_TYPE,array('options','OPTIONS'))) {
+//                $stream->next();
+//                $expressions["options"] = Twig_Drupal_Expression_MultiArray::parseExpression($stream);
+//                var_dump($expressions["options"]);
+//            }
             $stream->next();
         }
-        return $parameters;
+        $stream->expect(Twig_Token::BLOCK_END_TYPE);
+        return new Twig_Drupal_Node_L($expressions, $lineno,$this->getTag());
     }
+
 
     public function getTag() {
         return 'l';
     }
+
+
 }
 ?>

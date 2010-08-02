@@ -8,16 +8,21 @@
 
 Class Twig_Drupal_Node_L extends Twig_Node {
 
-    public function __construct($expressions) {
-        parent::__construct(array(), $expressions, $lineno);
+    public function __construct($expressions, $lineno,$tag) {
+        parent::__construct(array(), $expressions, $lineno,$tag);
     }
 
     public function compile($compiler) {
-        if(isset($this['lang'])) {
-            $compiler->write("echo t('".$this['string']."',array(),'".$this['lang']."');");
-        } else {
-            $compiler->write("echo t('".$this['string']."');");
+        $compiler->addDebugInfo($this);
+        //            t,p,o
+
+        $start = sprintf('echo l("%s","%s"',$this["string"],$this["url"]);
+        $compiler->write($start);
+        if (isset($this["options"])){
+//            $compiler->raw(",");
+//            $this["options"]->compile($compiler);
         }
+        $compiler->raw(");");
     }
 }
 ?>
