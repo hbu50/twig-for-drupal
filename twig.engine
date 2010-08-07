@@ -187,7 +187,6 @@ function twig_autoload($class) {
         }
     }
     elseif (0 === strpos($class, 'Drupal_')) {
-        echo $class;
         if (file_exists($file = dirname(__FILE__).DIRECTORY_SEPARATOR.'lib'.DIRECTORY_SEPARATOR.str_replace('_', DIRECTORY_SEPARATOR, $class).'.php')) {
             require $file;
         }
