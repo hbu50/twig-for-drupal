@@ -180,11 +180,19 @@ function twig_get_instance() {
  */
 
 function twig_autoload($class) {
-    if ( (0 == strpos($class, 'Twig_')) && (0 == strpos($class, 'Drupal_')) ) {
+    if  (0 === strpos($class, 'Twig_')) {
+        $path = DIRECTORY_SEPARATOR.'lib'.DIRECTORY_SEPARATOR;
+        if (file_exists($file = dirname(__FILE__).$path.'Twig'.$path.DIRECTORY_SEPARATOR.str_replace('_', DIRECTORY_SEPARATOR, $class).'.php')) {
+            require $file;
+        }
+    }
+    elseif (0 === strpos($class, 'Drupal_')) {
+        echo $class;
         if (file_exists($file = dirname(__FILE__).DIRECTORY_SEPARATOR.'lib'.DIRECTORY_SEPARATOR.str_replace('_', DIRECTORY_SEPARATOR, $class).'.php')) {
             require $file;
         }
     }
+
 }
 
 /**
