@@ -6,7 +6,7 @@
 * http://renebakx.nl/twig-for-drupal
 */
 
-Class Twig_Drupal_Node_T extends Twig_Node {
+Class Drupal_Node_T extends Twig_Node {
 
     public function __construct($expressions) {
         parent::__construct(array(), $expressions, $lineno,$tag);

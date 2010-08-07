@@ -9,9 +9,8 @@
  * 
 */
 
-/* register Twig autoloader system */
-require_once(drupal_get_path('theme_engine', 'twig') . '/lib/Twig/Autoloader.php');
-Twig_Autoloader::register();
+/* register autoloader system */
+spl_autoload_register('twig_autoload');
 
 /**
  * registers the .tpl.html extension for twig templates
@@ -28,12 +27,9 @@ function twig_extension() {
  * @param <object> $theme
  */
 function twig_init($theme) {
-    $file = dirname($theme->filename) .'/template.php';
-    if (file_exists($file)) {
-        include_once "./$file";
+    if (file_exists($file = dirname($theme->filename) .DIRECTORY_SEPARATOR.'template.php')) {
+        require_once $file;
     }
-
-
 }
 
 /**
@@ -49,7 +45,7 @@ function twig_theme($existing, $type, $theme, $path) {
     $twigFunctions = drupal_find_theme_functions($existing, array('twig', $theme));
     $twigTemplates = drupal_find_theme_templates($existing, twig_extension(), $path);
 
-    require_once(drupal_get_path('theme_engine', 'phptemplate') . '/phptemplate.engine');
+    require_once(drupal_get_path('theme_engine', 'phptemplate') . DIRECTORY_SEPARATOR.'phptemplate.engine');
     $phpTemplate  =  phptemplate_theme($existing, $type, $theme, $path);
     return $twigFunctions+$twigTemplates+$phpTemplate;
 }
@@ -76,15 +72,13 @@ function twig_render_template($template,$variables = array()) {
  * Discovers the needed .tpl.php to render, and renders it in php_template using
  * variables
  *
- * Todo : Could be a little bit more clever, by just removing the twig_extension()
- *
  * @param <type> $template
  * @param <type> $variables
  * @return <type>
  */
 function twig_render_default_template($template,$variables) {
     $paths = twig_get_discovered_templates();
-    $chunks = array_reverse(explode("/",$template));
+    $chunks = array_reverse(explode(DIRECTORY_SEPARATOR,$template));
     $variables["template_files"][] = str_replace(twig_extension(),"",$chunks[0]);
     $variables["template_files"] = array_reverse($variables["template_files"]);
     $template = drupal_discover_template($paths, $variables["template_files"], '.tpl.php');
@@ -128,7 +122,7 @@ function twig_init_cache($clear=false) {
     }
 
     if ($clear && $path) {
-        foreach(glob($path.'/*.*') as $file) {
+        foreach(glob($path.DIRECTORY_SEPARATOR.'*.*') as $file) {
             unlink($file);
         }
     }
@@ -143,7 +137,7 @@ function twig_init_cache($clear=false) {
  */
 function twig_render($template,$variables) {
     try {
-        $twig = twig_get_singleton();
+        $twig = twig_get_instance();
         $template = $twig->loadTemplate($template);
         $content = $template->render($variables);
     } catch (Exception $e) {
@@ -155,35 +149,42 @@ function twig_render($template,$variables) {
  * Returns a singleton version of the twig template enginge\
  * @return <object> Twig_Environment
 */
-function twig_get_singleton() {
-
+function twig_get_instance() {
     static $twig_engine;
     if (!is_object($twig_engine)) {
-        Twig_Autoloader::register();
         try {
             $twigEnvironment = array();
             $cache = twig_init_cache(true);
-            $twigEnvironment['debug'] = true;
+            $twigEnvironment['debug'] = true;             /* todo make this a module switch */
             if ($cache) {
                 $twigEnvironment['cache'] = $cache;
             }
-
-            //-- Make sure 'include' works for the current theme
             $paths = array();
-            $paths[] = realpath('./') . base_path() . path_to_theme() . '/';
-            $paths[] = realpath('./').  DIRECTORY_SEPARATOR;
-
+            $paths[] = realpath('.'.DIRECTORY_SEPARATOR) . base_path() . path_to_theme() . DIRECTORY_SEPARATOR;
+            $paths[] = realpath('.'.DIRECTORY_SEPARATOR);
             $loader          = new Twig_Loader_Filesystem($paths);
             $twig_engine     = new Twig_Environment($loader,$twigEnvironment);
-
-            // hook in the drupal tags etc.
-            $twig_engine->addExtension(new Twig_Drupal_Extension());
+            $twig_engine->addExtension(new Drupal_Extension());
         } catch(Exception $e) {
             echo twig_error($e);
         }
     }
-
     return $twig_engine;
+}
+
+/**
+ * Autoloads either Drupal_ or Twig_ classes
+ * engine
+ *
+ * @param <string> $class
+ */
+
+function twig_autoload($class) {
+    if ( (0 == strpos($class, 'Twig_')) && (0 == strpos($class, 'Drupal_')) ) {
+        if (file_exists($file = dirname(__FILE__).DIRECTORY_SEPARATOR.'lib'.DIRECTORY_SEPARATOR.str_replace('_', DIRECTORY_SEPARATOR, $class).'.php')) {
+            require $file;
+        }
+    }
 }
 
 /**

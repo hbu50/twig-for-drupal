@@ -14,7 +14,7 @@
 * http://renebakx.nl/twig-for-drupal
 */
 
-class Twig_Drupal_TokenParser_L extends Twig_TokenParser {
+class Drupal_TokenParser_L extends Twig_TokenParser {
 
     public function parse(Twig_Token $token) {
 
@@ -32,15 +32,10 @@ class Twig_Drupal_TokenParser_L extends Twig_TokenParser {
                 $expressions["url"] = $stream->getCurrent()->getValue();
             }
 
-//            if ($stream->test(Twig_Token::NAME_TYPE,array('options','OPTIONS'))) {
-//                $stream->next();
-//                $expressions["options"] = Twig_Drupal_Expression_MultiArray::parseExpression($stream);
-//                var_dump($expressions["options"]);
-//            }
             $stream->next();
         }
         $stream->expect(Twig_Token::BLOCK_END_TYPE);
-        return new Twig_Drupal_Node_L($expressions, $lineno,$this->getTag());
+        return new Drupal_Node_L($expressions, $lineno,$this->getTag());
     }
 
 
