@@ -37,7 +37,6 @@ class Twig_Node implements Twig_NodeInterface, ArrayAccess, Countable, IteratorA
      */
     public function __construct(array $nodes = array(), array $attributes = array(), $lineno = 0, $tag = null)
     {
-        
         $this->nodes = array();
         foreach ($nodes as $name => $node) {
             $this->$name = $node;
