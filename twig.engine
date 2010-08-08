@@ -61,7 +61,7 @@ function twig_theme($existing, $type, $theme, $path) {
  * @return <string> rendered template
  */
 function twig_render_template($template,$variables = array()) {
-    
+
     if (file_exists($template)) {
         return twig_render($template,$variables);
     } else {
@@ -154,18 +154,20 @@ function twig_get_instance() {
     static $twig_engine;
     if (!is_object($twig_engine)) {
         try {
+            /* todo make this a module switch */
             $twigEnvironment = array();
             $cache = twig_init_cache(true);
-            $twigEnvironment['debug'] = true;             /* todo make this a module switch */
+            $twigEnvironment['debug'] = true;
             if ($cache) {
                 $twigEnvironment['cache'] = $cache;
             }
-            $paths = array();
-            $paths[] = realpath('.'.DIRECTORY_SEPARATOR) . base_path() . path_to_theme() . DIRECTORY_SEPARATOR;
-            $paths[] = realpath('.'.DIRECTORY_SEPARATOR);
+            $paths = array(
+                    realpath('.'.DIRECTORY_SEPARATOR) . base_path() . path_to_theme() . DIRECTORY_SEPARATOR,
+                    realpath('.'.DIRECTORY_SEPARATOR));
             $loader          = new Twig_Loader_Filesystem($paths);
             $twig_engine     = new Twig_Environment($loader,$twigEnvironment);
             $twig_engine->addExtension(new Drupal_Extension());
+            $twig_engine->setParser(new Drupal_ExtendedParser($twig_engine));
         } catch(Exception $e) {
             echo twig_error($e);
         }
