@@ -61,6 +61,7 @@ function twig_theme($existing, $type, $theme, $path) {
  * @return <string> rendered template
  */
 function twig_render_template($template,$variables = array()) {
+    
     if (file_exists($template)) {
         return twig_render($template,$variables);
     } else {
