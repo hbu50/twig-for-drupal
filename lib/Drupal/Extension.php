@@ -11,6 +11,8 @@ class Drupal_Extension extends Twig_Extension {
     /* registers the drupal specific tags */
     public function getTokenParsers() {
         $parsers[] = new Drupal_TokenParser_T();
+        $parsers[] = new Drupal_TokenParser_L();
+       
 
         if (module_exists('devel')) {
             $parsers[] =    new Drupal_TokenParser_Dpr();
@@ -21,11 +23,19 @@ class Drupal_Extension extends Twig_Extension {
 
     /* registers the drupal specific filters */
     public function getFilters() {
-        return array();
+        $filters['size'] = new Twig_Filter_Function('drupal_filter_size');
+        return $filters;
     }
 
     public function getName() {
         return 'drupal';
     }
+}
+
+/* the above declared filter implementations go here */
+
+/* returns human readable filesize from $value (1024 => 1KB) */
+function drupal_filter_size($value,$lang=NULL) {
+    return format_size($value,$lang);
 }
 ?>

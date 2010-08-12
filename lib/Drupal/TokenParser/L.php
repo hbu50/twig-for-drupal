@@ -17,30 +17,15 @@
 class Drupal_TokenParser_L extends Twig_TokenParser {
 
     public function parse(Twig_Token $token) {
-
-        $lineno = $token->getLine();
-        $stream = $this->parser->getStream();
-        $expression = array();
-        while(!$stream->test(Twig_Token::BLOCK_END_TYPE)) {
-            if ($stream->test(Twig_Token::STRING_TYPE)) {
-                $expressions["string"]  = $stream->getCurrent()->getValue();
-            }
-
-            if ($stream->test(Twig_Token::NAME_TYPE,array('url','URL','path','PATH'))) {
-                $stream->next();
-                $stream->expect(Twig_Token::OPERATOR_TYPE);
-                $expressions["url"] = $stream->getCurrent()->getValue();
-            }
-
-            $stream->next();
-        }
-        $stream->expect(Twig_Token::BLOCK_END_TYPE);
-        return new Drupal_Node_L($expressions, $lineno,$this->getTag());
+        return $this->parser->parseLanguageTag($token,$this);
     }
-
 
     public function getTag() {
         return 'l';
+    }
+
+    public function getNode($expr,$params=array(),$lineno=NULL) {
+        return new Drupal_Node_L($expr, $params, $lineno, $this->getTag());
     }
 
 

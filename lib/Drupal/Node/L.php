@@ -8,21 +8,19 @@
 
 Class Drupal_Node_L extends Twig_Node {
 
-    public function __construct($expressions, $lineno,$tag) {
-        parent::__construct(array(), $expressions, $lineno,$tag);
+    public function __construct(Twig_Node_Expression $expr,Twig_Node_Expression $params = NULL,$lineno,$tag) {
+        parent::__construct(array('expr' => $expr),array('lang'=>$params), $lineno,$tag);
     }
 
     public function compile($compiler) {
         $compiler->addDebugInfo($this);
-        //            t,p,o
-
-        $start = sprintf('echo l("%s","%s"',$this["string"],$this["url"]);
-        $compiler->write($start);
-        if (isset($this["options"])){
-//            $compiler->raw(",");
-//            $this["options"]->compile($compiler);
+        $compiler->indent()->raw("echo url(")
+                ->subcompile($this->expr);
+        if (!is_null($this->attributes["lang"])) {
+            $compiler->raw(",array('language'=>")
+                    ->subcompile($this->attributes["lang"]);
         }
-        $compiler->raw(");");
+        $compiler->outdent()->raw("));\n");
     }
 }
 ?>
