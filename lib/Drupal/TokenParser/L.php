@@ -2,9 +2,8 @@
 /* Maps the L tag to the drupal l() function
  * 
 * usage :
-* {%l "bar" url="http://foo" %}  returns l('bar',"'http://foo")
-* or
-* {%l "bar" url="http://foo" options=['class'='foobarclass']  %}  returns l('bar',"'http://foo",array('class='='foobarclass')
+ *
+* {%l "foo" %} {%l user.name> %} {%l "foo" lang='nl'%} {%l "foo" lang=user.lang'%}
 *
 * url can also be path to keep it more in drupal lingo :)
 *
