@@ -12,8 +12,10 @@ class TFD_Environment extends Twig_Environment {
     }
 
     /**
+     * returns the name of the class to be created
+     * which is also the name of the cached instance
      *
-     * @param <string> $name
+     * @param <string> $name of template
      * @return <string>
      */
     public function getTemplateClass($name) {
@@ -21,5 +23,6 @@ class TFD_Environment extends Twig_Environment {
 
         return str_replace(array('.','/'),"_",$name);
     }
+   
 }
 ?>

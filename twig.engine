@@ -25,7 +25,7 @@ function twig_extension() {
  * @param <object> $theme
  */
 function twig_init($theme) {
-    if (file_exists($file = path_to_theme() .'/template.php')) {
+    if (file_exists($file =  dirname($theme->filename) .'/template.php')) {
         require_once $file;
     }
 }
@@ -42,9 +42,11 @@ function twig_init($theme) {
 function twig_theme($existing, $type, $theme, $path) {
     $twigFunctions = drupal_find_theme_functions($existing, array('twig', $theme));
     $twigTemplates = drupal_find_theme_templates($existing, twig_extension(), $path);
+    // fallback tpl.php names
     drupal_load('theme_engine',  'phptemplate');
     $phpTemplate  =  phptemplate_theme($existing, $type, $theme, $path);
-    return $twigFunctions+$twigTemplates+$phpTemplate;
+    $return = $twigFunctions+$twigTemplates+$phpTemplate;
+    return $return;
 }
 
 /**
@@ -135,7 +137,7 @@ function twig_render($template,$variables) {
         $template = $twig->loadTemplate($template);
         $content = $template->render($variables);
     } catch (Exception $e) {
-        echo $e->getMessage();
+         drupal_set_message(sprintf($e->getMessage()),'error');
     }
     return $content;
 }
