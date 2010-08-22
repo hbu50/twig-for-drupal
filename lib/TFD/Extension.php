@@ -6,24 +6,24 @@
 * http://renebakx.nl/twig-for-drupal
 */
 
-class Drupal_Extension extends Twig_Extension {
+class TFD_Extension extends Twig_Extension {
 
     /* registers the drupal specific tags */
     public function getTokenParsers() {
-        $parsers[] = new Drupal_TokenParser_T();
-        $parsers[] = new Drupal_TokenParser_L();
+        $parsers[] = new TFD_TokenParser_T();
+        $parsers[] = new TFD_TokenParser_L();
        
 
         if (module_exists('devel')) {
-            $parsers[] =    new Drupal_TokenParser_Dpr();
-            $parsers[] =    new Drupal_TokenParser_Dpm();
+            $parsers[] =    new TFD_TokenParser_Dpr();
+            $parsers[] =    new TFD_TokenParser_Dpm();
         }
         return $parsers;
     }
 
     /* registers the drupal specific filters */
     public function getFilters() {
-        $filters['size'] = new Twig_Filter_Function('drupal_filter_size');
+        $filters['size'] = new Twig_Filter_Function('TFD_filter_size');
         return $filters;
     }
 
@@ -35,7 +35,7 @@ class Drupal_Extension extends Twig_Extension {
 /* the above declared filter implementations go here */
 
 /* returns human readable filesize from $value (1024 => 1KB) */
-function drupal_filter_size($value,$lang=NULL) {
+function TFD_filter_size($value,$lang=NULL) {
     return format_size($value,$lang);
 }
 ?>

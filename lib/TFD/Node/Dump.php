@@ -16,7 +16,7 @@
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
  * @version    SVN: $Id$
  */
-class Drupal_Node_Dump extends Twig_Node {
+class TFD_Node_Dump extends Twig_Node {
     public function __construct(Twig_Node_Expression $expr = null, $lineno, $tag = null) {
         parent::__construct(array('expr' => $expr), array(), $lineno, $tag);
     }

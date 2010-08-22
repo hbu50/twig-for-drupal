@@ -1,12 +1,10 @@
 <?php
-/* Twig template engine v0.9.9 (c) Twig Team / Fabien Potencier / Sensio Labs
- * see http://www.twig-project.org/
+/*Drupal implementation of the twig template engine.
  *
- * Drupal 6 addaption with fallback 1.01 René Bakx (27-07-2010)
+ * You *need* PHP 5.2.4 or higher to use code.
  *
- * You *need* PHP 5.2.4 or higher to use this template engine
- * more info can be found on http://renebakx.nl/url_to_be_set
- * 
+ * Part of the Drupal twig extension distribution
+ * http://renebakx.nl/twig-for-drupal
 */
 
 /* register autoloader system */
@@ -27,7 +25,7 @@ function twig_extension() {
  * @param <object> $theme
  */
 function twig_init($theme) {
-    if (file_exists($file = dirname($theme->filename) .DIRECTORY_SEPARATOR.'template.php')) {
+    if (file_exists($file = path_to_theme() .'/template.php')) {
         require_once $file;
     }
 }
@@ -44,8 +42,7 @@ function twig_init($theme) {
 function twig_theme($existing, $type, $theme, $path) {
     $twigFunctions = drupal_find_theme_functions($existing, array('twig', $theme));
     $twigTemplates = drupal_find_theme_templates($existing, twig_extension(), $path);
-
-    require_once(drupal_get_path('theme_engine', 'phptemplate') . DIRECTORY_SEPARATOR.'phptemplate.engine');
+    drupal_load('theme_engine',  'phptemplate');
     $phpTemplate  =  phptemplate_theme($existing, $type, $theme, $path);
     return $twigFunctions+$twigTemplates+$phpTemplate;
 }
@@ -61,10 +58,10 @@ function twig_theme($existing, $type, $theme, $path) {
  * @return <string> rendered template
  */
 function twig_render_template($template,$variables = array()) {
-
     if (file_exists($template)) {
         return twig_render($template,$variables);
-    } else {
+    }
+    else {
         return twig_render_default_template($template,$variables);
     }
 }
@@ -79,10 +76,11 @@ function twig_render_template($template,$variables = array()) {
  */
 function twig_render_default_template($template,$variables) {
     $paths = twig_get_discovered_templates();
-    $chunks = array_reverse(explode(DIRECTORY_SEPARATOR,$template));
+    $chunks = array_reverse(explode("/",$template));
     $variables["template_files"][] = str_replace(twig_extension(),"",$chunks[0]);
     $variables["template_files"] = array_reverse($variables["template_files"]);
     $template = drupal_discover_template($paths, $variables["template_files"], '.tpl.php');
+    drupal_set_message(sprintf('Twig fallback to tpl.php for template "%s"',$template),'warning');
     return theme_render_template($template,$variables);
 }
 
@@ -114,17 +112,12 @@ function twig_get_discovered_templates() {
  * @return <string> path to twig cache
  */
 function twig_init_cache($clear=false) {
-    $path = file_directory_path().DIRECTORY_SEPARATOR.'twig_cache';
-    if (!is_dir($path)) {
-        mkdir($path);
-    }
-    if (!is_writable($path)) {
-        $path = FALSE;
-    }
-
-    if ($clear && $path) {
-        foreach(glob($path.DIRECTORY_SEPARATOR.'*.*') as $file) {
-            unlink($file);
+    $path = file_directory_path()."/twig_cache";
+    if (file_check_directory($path, TRUE)) {
+        if ($clear) {
+            foreach(glob($path.'/*.*') as $file) {
+                unlink($file);
+            }
         }
     }
     return $path;
@@ -142,7 +135,7 @@ function twig_render($template,$variables) {
         $template = $twig->loadTemplate($template);
         $content = $template->render($variables);
     } catch (Exception $e) {
-        $content = twig_error($e);
+        echo $e->getMessage();
     }
     return $content;
 }
@@ -153,58 +146,36 @@ function twig_render($template,$variables) {
 function twig_get_instance() {
     static $twig_engine;
     if (!is_object($twig_engine)) {
-        try {
-            /* todo make this a module switch */
-            $twigEnvironment = array();
-            $cache = twig_init_cache(true);
-            $twigEnvironment['debug'] = true;
-            if ($cache) {
-                $twigEnvironment['cache'] = $cache;
-            }
-            $paths = array(
-                    realpath('.'.DIRECTORY_SEPARATOR) . base_path() . path_to_theme() . DIRECTORY_SEPARATOR,
-                    realpath('.'.DIRECTORY_SEPARATOR));
-            $loader          = new Twig_Loader_Filesystem($paths);
-            $twig_engine     = new Twig_Environment($loader,$twigEnvironment);
-            $twig_engine->addExtension(new Drupal_Extension());
-            $twig_engine->setParser(new Drupal_ExtendedParser($twig_engine));
-        } catch(Exception $e) {
-            echo twig_error($e);
+        $twigEnvironment = array();
+        $cache = twig_init_cache(true);
+        $twigEnvironment['debug'] = true;
+        if ($cache) {
+            $twigEnvironment['cache'] = $cache;
         }
+        $loader          = new TFD_Loader_Filesystem();
+        $twig_engine     = new TFD_Environment($loader,$twigEnvironment);
+        $twig_engine->addExtension(new TFD_Extension());
+        $twig_engine->setParser(new TFD_ExtendedParser($twig_engine));
     }
     return $twig_engine;
 }
 
 /**
- * Autoloads either Drupal_ or Twig_ classes
+ * Autoloads either TFD_ or Twig_ classes
  * engine
  *
  * @param <string> $class
  */
 
 function twig_autoload($class) {
-    if  (0 === strpos($class, 'Twig_')) {
-        $path = DIRECTORY_SEPARATOR.'lib'.DIRECTORY_SEPARATOR;
-        if (file_exists($file = dirname(__FILE__).$path.'Twig'.$path.DIRECTORY_SEPARATOR.str_replace('_', DIRECTORY_SEPARATOR, $class).'.php')) {
-            require $file;
-        }
+    $class = str_replace('_', '/', $class).'.php';
+    if  (0 === strpos($class, 'TFD')) {
+        $engine_path = drupal_get_path('theme_engine', 'twig') . '/lib/';
     }
-    elseif (0 === strpos($class, 'Drupal_')) {
-        if (file_exists($file = dirname(__FILE__).DIRECTORY_SEPARATOR.'lib'.DIRECTORY_SEPARATOR.str_replace('_', DIRECTORY_SEPARATOR, $class).'.php')) {
-            require $file;
-        }
+    else if  (0 === strpos($class, 'Twig')) {
+        $engine_path = drupal_get_path('theme_engine', 'twig') . '/lib/Twig/lib/';
     }
-
-}
-
-/**
- * returns error message, can be extended to your own liking, or hook it into
- * watchdog. It's needed because TWIG has own syntax checking and throws
- * exceptions on errors.
- *
- * @param <object> $error spl error object
- * @return string
- */
-function twig_error($error) {
-    return $error->getMessage();
+    if(file_exists($engine_path . $class)) {
+        require_once $engine_path . $class;
+    }
 }

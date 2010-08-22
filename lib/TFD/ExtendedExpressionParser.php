@@ -1,5 +1,5 @@
 <?php
-/* Drupal_ExtendedExpressionParser
+/* TFD_ExtendedExpressionParser
  *
  * Extends the default Twig_ExpressionParser so you can easily add extra
  * expressions (aka token combo's) to your tags/nodes
@@ -8,7 +8,7 @@
  * http://renebakx.nl/twig-for-drupal
 */
 
-class Drupal_ExtendedExpressionParser extends Twig_ExpressionParser {
+class TFD_ExtendedExpressionParser extends Twig_ExpressionParser {
 
     public function __construct(Twig_Parser $parser) {
         parent::__construct($parser);

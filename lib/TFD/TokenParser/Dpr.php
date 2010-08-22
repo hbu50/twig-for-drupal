@@ -1,5 +1,5 @@
 <?php
-class Drupal_TokenParser_Dpm extends Twig_TokenParser
+class TFD_TokenParser_Dpr extends Twig_TokenParser
 {
     /**
      * Parses a token and returns a node.
@@ -17,7 +17,7 @@ class Drupal_TokenParser_Dpm extends Twig_TokenParser
         }
         $this->parser->getStream()->expect(Twig_Token::BLOCK_END_TYPE);
 
-        return new Drupal_Node_Dump($expr, $lineno, $this->getTag());
+        return new TFD_Node_Dump($expr, $lineno, $this->getTag());
     }
 
     /**
@@ -27,7 +27,7 @@ class Drupal_TokenParser_Dpm extends Twig_TokenParser
      */
     public function getTag()
     {
-        return 'dpm';
+        return 'dpr';
     }
 }
 ?>

@@ -13,7 +13,7 @@
 * http://renebakx.nl/twig-for-drupal
 */
 
-class Drupal_TokenParser_L extends Twig_TokenParser {
+class TFD_TokenParser_L extends Twig_TokenParser {
 
     public function parse(Twig_Token $token) {
         return $this->parser->parseLanguageTag($token,$this);
@@ -24,7 +24,7 @@ class Drupal_TokenParser_L extends Twig_TokenParser {
     }
 
     public function getNode($expr,$params=array(),$lineno=NULL) {
-        return new Drupal_Node_L($expr, $params, $lineno, $this->getTag());
+        return new TFD_Node_L($expr, $params, $lineno, $this->getTag());
     }
 
 
