@@ -2,6 +2,9 @@
 /**
  * Loads template from the filesystem.
  *
+ * WARNING! This loader assumes there are NO default drupal modules that
+ * come with twig templates (.tpl.html!)
+ *
  * Part of the Drupal twig extension distribution
  * http://renebakx.nl/twig-for-drupal
  */
@@ -9,18 +12,25 @@
 class TFD_Loader_Filesystem implements Twig_LoaderInterface {
 
     protected $cache;
+    protected $paths;
 
     public function __construct() {
+        foreach (list_themes() as $theme) {
+            $this->paths[] = dirname($theme->filename);
+        }
         $this->cache = array();
     }
 
 
     public function getSource($filename) {
-        return $this->getTemplate($filename);
+            return file_get_contents($this->getCacheKey($filename));
     }
 
     public function getCacheKey($filename) {
-        return $filename;
+        if (!$this->cache[$filename]){
+                $this->findTemplate($filename);
+            }
+        return $this->cache[$filename];
     }
 
     // strangely enough filebased templates are allways fresh ;)
@@ -29,14 +39,18 @@ class TFD_Loader_Filesystem implements Twig_LoaderInterface {
     }
 
 
-    private function getTemplate($name) {
-        if(!isset($this->cache[$name])) {
-            if (is_readable($name)) {
-                $this->cache[$name] = file_get_contents($name);
-            } else {
-                throw new RuntimeException(sprintf('Unable to find template "%s"',$name));
+    private function findTemplate($name) {
+        if (is_readable($name)) {
+            $this->cache[$name] = $name;
+        } else {
+            foreach($this->paths as $path) {
+                $filename = $path .'/'. $name;
+                if (is_readable($filename)) {
+                    $this->cache[$name] = $filename;
+                    continue;
+                }
             }
+            if (!isset($this->cache[$name])) throw new Exception("unabled to load template $name",1);
         }
-        return $this->cache[$name];
     }
 }

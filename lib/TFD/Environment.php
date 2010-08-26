@@ -20,8 +20,7 @@ class TFD_Environment extends Twig_Environment {
      */
     public function getTemplateClass($name) {
         $cache = $this->loader->getCacheKey($name);
-
-        return str_replace(array('.','/'),"_",$name);
+        return str_replace(array('-','.','/'),"_",$cache);
     }
    
 }

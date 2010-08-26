@@ -18,9 +18,10 @@ Class TFD_Node_L extends Twig_Node {
                 ->subcompile($this->expr);
         if (!is_null($this->attributes["lang"])) {
             $compiler->raw(",array('language'=>")
-                    ->subcompile($this->attributes["lang"]);
+                    ->subcompile($this->attributes["lang"])
+                    ->raw(')');
         }
-        $compiler->outdent()->raw("));\n");
+        $compiler->outdent()->raw(");\n");
     }
 }
 ?>
