@@ -21,6 +21,9 @@ function twig_extension() {
 
 /**
  * Implementation of hook_init()
+ *
+ * note get's called at rebuild registry!
+ * 
  * include the current theme template.php file.
  * @param <object> $theme
  */
@@ -42,11 +45,7 @@ function twig_init($theme) {
 function twig_theme($existing, $type, $theme, $path) {
     $twigFunctions = drupal_find_theme_functions($existing, array('twig', $theme));
     $twigTemplates = drupal_find_theme_templates($existing, twig_extension(), $path);
-    // fallback tpl.php names
-    drupal_load('theme_engine',  'phptemplate');
-    $phpTemplate  =  phptemplate_theme($existing, $type, $theme, $path);
-    $return = $twigFunctions+$twigTemplates+$phpTemplate;
-    return $return;
+    return array_merge($twigFunctions,$twigTemplates);
 }
 
 /**
@@ -137,7 +136,8 @@ function twig_render($template,$variables) {
         $template = $twig->loadTemplate($template);
         $content = $template->render($variables);
     } catch (Exception $e) {
-         echo $e->getMessage();
+        drupal_set_message($e->getMessage(),'error');
+        echo $e->getMessage() .' in ' .$e->getFile();
     }
     return $content;
 }
