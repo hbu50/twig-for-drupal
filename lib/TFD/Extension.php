@@ -12,7 +12,7 @@ class TFD_Extension extends Twig_Extension {
     public function getTokenParsers() {
         $parsers[] = new TFD_TokenParser_T();
         $parsers[] = new TFD_TokenParser_L();
-       
+        $parsers[] = new TFD_TokenParser_Theme();
 
         if (module_exists('devel')) {
             $parsers[] =    new TFD_TokenParser_Dpr();

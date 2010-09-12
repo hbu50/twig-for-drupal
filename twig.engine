@@ -137,7 +137,7 @@ function twig_render($template,$variables) {
         $template = $twig->loadTemplate($template);
         $content = $template->render($variables);
     } catch (Exception $e) {
-         drupal_set_message(sprintf($e->getMessage()),'error');
+         echo $e->getMessage();
     }
     return $content;
 }

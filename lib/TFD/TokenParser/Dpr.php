@@ -1,4 +1,11 @@
 <?php
+/*
+* Maps the devel modules dpr() function to a twig node
+*
+* Part of the Drupal twig extension distribution
+* http://renebakx.nl/twig-for-drupal
+*/
+
 class TFD_TokenParser_Dpr extends Twig_TokenParser
 {
     /**

@@ -1,21 +1,11 @@
 <?php
-
 /*
- * This file is part of Twig.
- *
- * (c) 2010 Fabien Potencier
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * outputs either DPR or DPM for the given variable/object or array
+ * and if the devel module is not loaded, throws a warning and uses print_r
+  *
+ * Part of the Drupal twig extension distribution
+ * http://renebakx.nl/twig-for-drupal
 */
-
-/**
- * Represents a debug node.
- *
- * @package    twig
- * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version    SVN: $Id$
- */
 class TFD_Node_Dump extends Twig_Node {
     public function __construct(Twig_Node_Expression $expr = null, $lineno, $tag = null) {
         parent::__construct(array('expr' => $expr), array(), $lineno, $tag);
