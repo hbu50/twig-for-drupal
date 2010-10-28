@@ -16,27 +16,35 @@ class TFD_Loader_Filesystem implements Twig_LoaderInterface {
 
 
     public function getSource($filename) {
-        return $this->getTemplate($filename);
+        return file_get_contents($this->getCacheKey($filename));
     }
 
-    public function getCacheKey($filename) {
-        return $filename;
-    }
-
-    // strangely enough filebased templates are allways fresh ;)
-    public function isFresh($filename, $time) {
-        return true;
-    }
-
-
-    private function getTemplate($name) {
-        if(!isset($this->cache[$name])) {
+    public function getCacheKey($name) {
+         if(!isset($this->cache[$name])) {
+             $found = false;
             if (is_readable($name)) {
-                $this->cache[$name] = file_get_contents($name);
+                $this->cache[$name] = $name;
+                $found = true;
             } else {
-                throw new RuntimeException(sprintf('Unable to find template "%s"',$name));
+                $paths = twig_get_discovered_templates();
+                foreach($paths as $path){
+                    $completeName = $path . '/' . $name;
+                    if (is_readable($completeName)) {
+                       $this->cache[$name] = $completeName;
+                       $found = true;
+                       break;
+                    }
+                }
+              #  
             }
+            if (!$found) throw new RuntimeException(sprintf('Unable to load template "%s"',$name));
         }
         return $this->cache[$name];
     }
+
+    // strangely enough filebased templates are always fresh ;)
+    public function isFresh($filename, $time) {
+        return true;
+    }
+       
 }

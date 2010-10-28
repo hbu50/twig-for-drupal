@@ -95,7 +95,8 @@ function twig_render_default_template($template,$variables) {
 function twig_get_discovered_templates() {
     $tplFolders = cache_get('twig_tpl_paths');
     if ($tplFolders == 0) {
-        $paths = array();
+        $currentPath = drupal_get_path('theme', variable_get('theme_default','null'));
+        $paths[] = $currentPath;
         $tplHooks = theme_get_registry();
         foreach($tplHooks as $hook => $data) {
             $paths = array_merge($paths,$data["theme paths"]);
@@ -137,7 +138,12 @@ function twig_render($template,$variables) {
         $content = $template->render($variables);
     } catch (Exception $e) {
         drupal_set_message($e->getMessage(),'error');
+        echo '<pre>';
         echo $e->getMessage() .' in ' .$e->getFile();
+        echo '<hr>';
+        echo $e->getTraceAsString();
+        echo '</pre>';
+
     }
     return $content;
 }
@@ -157,7 +163,6 @@ function twig_get_instance() {
         $loader          = new TFD_Loader_Filesystem();
         $twig_engine     = new TFD_Environment($loader,$twigEnvironment);
         $twig_engine->addExtension(new TFD_Extension());
-        $twig_engine->setParser(new TFD_ExtendedParser($twig_engine));
     }
     return $twig_engine;
 }
@@ -171,13 +176,14 @@ function twig_get_instance() {
 
 function twig_autoload($class) {
     $class = str_replace('_', '/', $class).'.php';
+    $engine_path = null;
     if  (0 === strpos($class, 'TFD')) {
         $engine_path = drupal_get_path('theme_engine', 'twig') . '/lib/';
     }
     else if  (0 === strpos($class, 'Twig')) {
         $engine_path = drupal_get_path('theme_engine', 'twig') . '/lib/Twig/lib/';
     }
-    if(file_exists($engine_path . $class)) {
+    if($engine_path && file_exists($engine_path . $class)) {
         require_once $engine_path . $class;
     }
 }
