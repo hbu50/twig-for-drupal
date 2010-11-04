@@ -30,8 +30,7 @@ class TFD_Node_FunctionCall extends Twig_Node {
     
     public function compile($compiler) {
         $compiler->addDebugInfo($this);
-        
-        if($this->getAttribute('isOutput')) {
+        if($this->offsetGet('isOutput')) {
             $compiler->write('echo ')->raw($this->functionName);    
         } else {
             $compiler->write($this->functionName);

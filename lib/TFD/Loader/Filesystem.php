@@ -26,23 +26,19 @@ class TFD_Loader_Filesystem implements Twig_LoaderInterface {
                 $this->cache[$name] = $name;
                 $found = true;
             } else {
-                $paths = twig_get_discovered_templates();
-                foreach($paths as $path){
+                $path = twig_get_current_theme_template_path();
                     $completeName = $path . '/' . $name;
                     if (is_readable($completeName)) {
                        $this->cache[$name] = $completeName;
                        $found = true;
-                       break;
-                    }
                 }
-              #  
             }
             if (!$found) throw new RuntimeException(sprintf('Unable to load template "%s"',$name));
         }
         return $this->cache[$name];
     }
 
-    // strangely enough filebased templates are always fresh ;)
+    //TODO Check with cache functions
     public function isFresh($filename, $time) {
         return true;
     }

@@ -20,6 +20,7 @@ class TFD_Environment extends Twig_Environment {
      */
     public function getTemplateClass($name) {
         $cache = $this->loader->getCacheKey($name);
+        $cache = substr($cache,strpos($cache,'/themes/')+8);
         return str_replace(array('-','.','/'),"_",$cache);
     }
    

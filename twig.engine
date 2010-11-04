@@ -1,7 +1,7 @@
 <?php
 /* Drupal implementation of the twig template engine.
  *
- * You *need* PHP 5.2.4 or higher to use code.
+ * You *need* PHP 5.2.x or higher to use code.
  *
  * @version D7-Beta2
  * @author René Bakx (rene@71media.net)
@@ -81,22 +81,14 @@ function twig_render_template($template,$variables = array()) {
  *
  * @return <array>
  */
-function twig_get_discovered_templates() {
-    $tplFolders = cache_get('twig_tpl_paths');
-    if ($tplFolders == 0) {
-        $currentPath = drupal_get_path('theme', variable_get('theme_default','null'));
-        $paths[] = $currentPath;
-        $tplHooks = theme_get_registry();
-        foreach($tplHooks as $hook => $data) {
-            $paths = array_merge($paths,$data["theme paths"]);
-        }
-        $tempFolders = array_unique($paths);
-        cache_set('twig_tpl_paths', $tempFolders, 'cache',CACHE_PERMANENT);
-        $return = $tempFolders;
-    } else {
-        $return = $tplFolders->data;
+function twig_get_current_theme_template_path() {
+    $foundTemplates = array();
+    $path = drupal_get_path('theme', variable_get('theme_default','null'));
+    if (is_dir($path . '/templates')) {
+        $path .= '/templates';
     }
-    return $return;
+    return ($path);
+
 }
 
 /**
@@ -112,8 +104,9 @@ function twig_init_cache($clear=false) {
                 unlink($file);
             }
         }
+        return $path;
     }
-    return $path;
+    return false;
 }
 
 /*
@@ -125,13 +118,15 @@ function twig_get_instance() {
     if (!is_object($twig_engine)) {
         $twigEnvironment = array();
         $cache = twig_init_cache(true);
-        $twigEnvironment['debug'] = true;
         if ($cache) {
             $twigEnvironment['cache'] = $cache;
         }
         $loader          = new TFD_Loader_Filesystem();
         $twig_engine     = new TFD_Environment($loader,$twigEnvironment);
+        $twig_engine->addExtension(new Twig_Extension_Escaper(false));
         $twig_engine->addExtension(new TFD_Extension());
+
+
     }
     return $twig_engine;
 }
