@@ -1,14 +1,12 @@
 <?php
-/*Drupal implementation of the twig template engine.
+/* Drupal implementation of the twig template engine.
  *
  * You *need* PHP 5.2.4 or higher to use code.
  *
- * Part of the Drupal twig extension distribution
- * http://renebakx.nl/twig-for-drupal
+ * @version D7-Beta2
+ * @author René Bakx (rene@71media.net)
 */
 
-/* register autoloader system */
-spl_autoload_register('twig_autoload');
 
 /**
  * registers the .tpl.html extension for twig templates
@@ -23,14 +21,14 @@ function twig_extension() {
  * Implementation of hook_init()
  *
  * note get's called at rebuild registry!
- * 
- * include the current theme template.php file.
+ *
  * @param <object> $theme
  */
 function twig_init($theme) {
     if (file_exists($file =  dirname($theme->filename) .'/template.php')) {
         require_once $file;
     }
+    spl_autoload_register('twig_autoload');
 }
 
 /**
@@ -42,10 +40,11 @@ function twig_init($theme) {
  * @link http://api.drupal.org/api/function/hook_theme/6
  * @return <array>
  */
+
 function twig_theme($existing, $type, $theme, $path) {
-    $twigFunctions = drupal_find_theme_functions($existing, array('twig', $theme));
-    $twigTemplates = drupal_find_theme_templates($existing, twig_extension(), $path);
-    return array_merge($twigFunctions,$twigTemplates);
+    $templates  = drupal_find_theme_functions($existing, array('twig', $theme));
+    $templates += drupal_find_theme_templates($existing, twig_extension(), $path);
+    return $templates;
 }
 
 /**
@@ -59,30 +58,20 @@ function twig_theme($existing, $type, $theme, $path) {
  * @return <string> rendered template
  */
 function twig_render_template($template,$variables = array()) {
-    if (file_exists($template)) {
-        return twig_render($template,$variables);
-    }
-    else {
-        return twig_render_default_template($template,$variables);
-    }
-}
+    try {
+        $twig = twig_get_instance();
+        $template = $twig->loadTemplate($template);
+        $content = $template->render($variables);
+    } catch (Exception $e) {
+        drupal_set_message($e->getMessage(),'error');
+        echo '<pre>';
+        echo $e->getMessage() .' in ' .$e->getFile();
+        echo '<hr>';
+        echo $e->getTraceAsString();
+        echo '</pre>';
 
-/**
- * Discovers the needed .tpl.php to render, and renders it in php_template using
- * variables
- *
- * @param <type> $template
- * @param <type> $variables
- * @return <type>
- */
-function twig_render_default_template($template,$variables) {
-    $paths = twig_get_discovered_templates();
-    $chunks = array_reverse(explode("/",$template));
-    $variables["template_files"][] = str_replace(twig_extension(),"",$chunks[0]);
-    $variables["template_files"] = array_reverse($variables["template_files"]);
-    $template = drupal_discover_template($paths, $variables["template_files"], '.tpl.php');
-    drupal_set_message(sprintf('Twig fallback to tpl.php for template "%s"',$template),'warning');
-    return theme_render_template($template,$variables);
+    }
+    return $content;
 }
 
 /**
@@ -109,13 +98,15 @@ function twig_get_discovered_templates() {
     }
     return $return;
 }
+
 /**
  * init or set the cache for twig to store compiled templates
  * @return <string> path to twig cache
  */
 function twig_init_cache($clear=false) {
-    $path = file_directory_path()."/twig_cache";
-    if (file_check_directory($path, TRUE)) {
+    $path = 'public://twig_cache';
+    if (file_prepare_directory($path,FILE_CREATE_DIRECTORY)) {
+        $path = drupal_realpath($path);
         if ($clear) {
             foreach(glob($path.'/*.*') as $file) {
                 unlink($file);
@@ -124,31 +115,9 @@ function twig_init_cache($clear=false) {
     }
     return $path;
 }
-/**
- * Renders template using twig
- *
- * @param <string> $template
- * @param <arrray> $variables
- * @return <string>
- */
-function twig_render($template,$variables) {
-    try {
-        $twig = twig_get_instance();
-        $template = $twig->loadTemplate($template);
-        $content = $template->render($variables);
-    } catch (Exception $e) {
-        drupal_set_message($e->getMessage(),'error');
-        echo '<pre>';
-        echo $e->getMessage() .' in ' .$e->getFile();
-        echo '<hr>';
-        echo $e->getTraceAsString();
-        echo '</pre>';
 
-    }
-    return $content;
-}
 /*
- * Returns a singleton version of the twig template enginge\
+ * Returns a singleton version of the twig template engine
  * @return <object> Twig_Environment
 */
 function twig_get_instance() {
@@ -173,7 +142,6 @@ function twig_get_instance() {
  *
  * @param <string> $class
  */
-
 function twig_autoload($class) {
     $class = str_replace('_', '/', $class).'.php';
     $engine_path = null;
