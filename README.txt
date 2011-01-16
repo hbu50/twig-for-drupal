@@ -1,12 +1,10 @@
 The drupal 6 implementation of the Twig template language.
 
+This is version is to be used with twig 1.0.0!
+
 For more information about Twig, visit http://twig-project.org
 
-To use the library, please download the lib folder from http://github.com/renebakx/twig-for-drupal and place that folder on the same level as the twig.engine file.
-
-Structure will look this this :
-
-/engines/twig/twig.engine
-/engines/twig/lib/...
+For more information on twig-for-drupal.. Be patient, working on a page to
+store more drupal code information :)
 
 

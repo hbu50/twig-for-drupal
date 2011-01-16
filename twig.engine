@@ -10,6 +10,8 @@
 /* register autoloader system */
 spl_autoload_register('twig_autoload');
 
+
+
 /**
  * registers the .tpl.html extension for twig templates
  * @return string
@@ -23,7 +25,7 @@ function twig_extension() {
  * Implementation of hook_init()
  *
  * note get's called at rebuild registry!
- * 
+ *
  * include the current theme template.php file.
  * @param <object> $theme
  */
@@ -31,6 +33,12 @@ function twig_init($theme) {
     if (file_exists($file =  dirname($theme->filename) .'/template.php')) {
         require_once $file;
     }
+}
+
+function twig_clear_cache(){
+    twig_get_instance()->flushCompilerCache();
+    cache_clear_all('twig_tpl_paths','cache');
+    watchdog('twig', 'All caches cleared');
 }
 
 /**
@@ -76,12 +84,13 @@ function twig_render_template($template,$variables = array()) {
  * @return <type>
  */
 function twig_render_default_template($template,$variables) {
+    drupal_set_message(sprintf('Twig fallback to tpl.php for template "%s"',$template),'warning');
+
     $paths = twig_get_discovered_templates();
     $chunks = array_reverse(explode("/",$template));
     $variables["template_files"][] = str_replace(twig_extension(),"",$chunks[0]);
     $variables["template_files"] = array_reverse($variables["template_files"]);
     $template = drupal_discover_template($paths, $variables["template_files"], '.tpl.php');
-    drupal_set_message(sprintf('Twig fallback to tpl.php for template "%s"',$template),'warning');
     return theme_render_template($template,$variables);
 }
 
@@ -94,12 +103,13 @@ function twig_render_default_template($template,$variables) {
  */
 function twig_get_discovered_templates() {
     $tplFolders = cache_get('twig_tpl_paths');
-    if ($tplFolders == 0) {
+    if ($tplFolders->data == "") {
         $currentPath = drupal_get_path('theme', variable_get('theme_default','null'));
         $paths[] = $currentPath;
         $tplHooks = theme_get_registry();
         foreach($tplHooks as $hook => $data) {
-            $paths = array_merge($paths,$data["theme paths"]);
+            if (is_array($data["theme paths"])) $paths = array_merge($paths,$data["theme paths"]);
+            $paths[] = $data["theme path"];
         }
         $tempFolders = array_unique($paths);
         cache_set('twig_tpl_paths', $tempFolders, 'cache',CACHE_PERMANENT);
@@ -109,21 +119,7 @@ function twig_get_discovered_templates() {
     }
     return $return;
 }
-/**
- * init or set the cache for twig to store compiled templates
- * @return <string> path to twig cache
- */
-function twig_init_cache($clear=false) {
-    $path = file_directory_path()."/twig_cache";
-    if (file_check_directory($path, TRUE)) {
-        if ($clear) {
-            foreach(glob($path.'/*.*') as $file) {
-                unlink($file);
-            }
-        }
-    }
-    return $path;
-}
+
 /**
  * Renders template using twig
  *
@@ -155,7 +151,7 @@ function twig_get_instance() {
     static $twig_engine;
     if (!is_object($twig_engine)) {
         $twigEnvironment = array();
-        $cache = twig_init_cache(true);
+        $cache = file_directory_path() . "/twig_cache";
         $twigEnvironment['debug'] = true;
         if ($cache) {
             $twigEnvironment['cache'] = $cache;

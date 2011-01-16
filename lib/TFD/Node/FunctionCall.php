@@ -15,10 +15,10 @@ class TFD_Node_FunctionCall extends Twig_Node {
 
     function __construct($functionName, $arguments, $isOutput, $line, $tag) {
         parent::__construct(
-            array(),
-            array('arguments' => $arguments, 'isOutput' => $isOutput),
-            $line,
-            $tag
+                array(),
+                array('arguments' => $arguments, 'isOutput' => $isOutput),
+                $line,
+                $tag
         );
         //TODO inflect functionname to see if it might be a class method callback, and reverse engineer if so
         if(!is_string($functionName) || !is_callable($functionName)) {
@@ -27,12 +27,12 @@ class TFD_Node_FunctionCall extends Twig_Node {
         $this->functionName = $functionName;
     }
 
-    
+
     public function compile($compiler) {
         $compiler->addDebugInfo($this);
-        
-        if($this->getAttribute('isOutput')) {
-            $compiler->write('echo ')->raw($this->functionName);    
+
+        if($this->isOutput) {
+            $compiler->write('echo ')->raw($this->functionName);
         } else {
             $compiler->write($this->functionName);
         }
