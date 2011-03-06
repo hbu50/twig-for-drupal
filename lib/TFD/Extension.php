@@ -35,22 +35,16 @@ class TFD_Extension extends Twig_Extension {
         $filters['size']            = new Twig_Filter_Function('format_size');
         $filters['url']             = new Twig_Filter_Function('tfd_url');
         $filters['t']               = new Twig_Filter_Function('t');
-        $filters['ucfirst']         = new Twig_Filter_Function('ucfirst');
-
+        
+        $filters['ic']              = new Twig_Filter_Function('tfd_imagecache_url'); // for those who are lazy like me ;)
         $filters['imagecache_url']  = new Twig_Filter_Function('tfd_imagecache_url');
+
         $filters['imagecache_size'] = new Twig_Filter_Function('tfd_imagecache_size');
 
         $filters['date_format']     = new Twig_Filter_Function('tfd_date_format_filter');
 
         $filters = array_merge($filters, module_invoke_all('twig_filters', $filters));
         return $filters;
-    }
-
-
-    public function getTests() {
-        $ret = array();
-        $ret['property'] = new Twig_Test_Function('tfd_property_test');
-        return $ret;
     }
 
     public function getName() {

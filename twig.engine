@@ -17,7 +17,7 @@ spl_autoload_register('twig_autoload');
  * @return string
  */
 function twig_extension() {
-    return ".tpl.html";
+    return '.tpl.html';
 }
 
 
@@ -35,7 +35,7 @@ function twig_init($theme) {
     }
 }
 
-function twig_clear_cache(){
+function twig_clear_cache() {
     twig_get_instance()->flushCompilerCache();
     cache_clear_all('twig_tpl_paths','cache');
     watchdog('twig', 'All caches cleared');
@@ -85,7 +85,7 @@ function twig_render_template($template,$variables = array()) {
  */
 function twig_render_default_template($template,$variables) {
     drupal_set_message(sprintf('Twig fallback to tpl.php for template "%s"',$template),'warning');
-
+    
     $paths = twig_get_discovered_templates();
     $chunks = array_reverse(explode("/",$template));
     $variables["template_files"][] = str_replace(twig_extension(),"",$chunks[0]);
@@ -151,7 +151,7 @@ function twig_get_instance() {
     static $twig_engine;
     if (!is_object($twig_engine)) {
         $twigEnvironment = array();
-        $cache = file_directory_path() . "/twig_cache";
+        $cache = file_directory_path() . '/twig_cache';
         $twigEnvironment['debug'] = true;
         if ($cache) {
             $twigEnvironment['cache'] = $cache;
@@ -182,4 +182,11 @@ function twig_autoload($class) {
     if($engine_path && file_exists($engine_path . $class)) {
         require_once $engine_path . $class;
     }
+}
+
+/**
+ * Flushes the compiler cache at
+ */
+function twig_flush_cache() {
+    twig_get_instance()->flushCompilerCache();
 }
