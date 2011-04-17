@@ -24,13 +24,14 @@ class TFD_Node_FunctionCall extends Twig_Node {
         if(!is_string($functionName) || !is_callable($functionName)) {
             throw new InvalidArgumentException("Currently only supporting regular functions");
         }
+        $this->isOutput = $isOutput;
         $this->functionName = $functionName;
     }
 
     
-    public function compile($compiler) {
+    public function compile(Twig_Compiler $compiler) {
         $compiler->addDebugInfo($this);
-        if($this->offsetGet('isOutput')) {
+        if($this->isOutput) {
             $compiler->write('echo ')->raw($this->functionName);    
         } else {
             $compiler->write($this->functionName);

@@ -3,10 +3,14 @@
  *
  * You *need* PHP 5.2.x or higher to use code.
  *
- * @version D7-Beta2
- * @author René Bakx (rene@71media.net)
-*/
+ * @version 7.0.1.0
+ * @author René Bakx
+ *
+ */
 
+
+/* register autoloader system */
+spl_autoload_register('twig_autoload');
 
 /**
  * registers the .tpl.html extension for twig templates
@@ -25,10 +29,9 @@ function twig_extension() {
  * @param <object> $theme
  */
 function twig_init($theme) {
-    if (file_exists($file =  dirname($theme->filename) .'/template.php')) {
-        require_once $file;
+    if (file_exists($file = dirname($theme->filename) . '/template.php')) {
+        require_once($file);
     }
-    spl_autoload_register('twig_autoload');
 }
 
 /**
@@ -42,7 +45,7 @@ function twig_init($theme) {
  */
 
 function twig_theme($existing, $type, $theme, $path) {
-    $templates  = drupal_find_theme_functions($existing, array('twig', $theme));
+    $templates = drupal_find_theme_functions($existing, array('twig', $theme));
     $templates += drupal_find_theme_templates($existing, twig_extension(), $path);
     return $templates;
 }
@@ -50,64 +53,30 @@ function twig_theme($existing, $type, $theme, $path) {
 /**
  * Implementation of hook ENGINE_render_template
  *
- * Checks if the twig template is available or else do the fallback to
- * the php_template drupal engine
+ * Checks if the twig template is available or else let drupal fallback to phptemplate
  *
  * @param <string> $template template filename
  * @param <array> $variables variables to be assigned to template
  * @return <string> rendered template
  */
-function twig_render_template($template,$variables = array()) {
-    try {
+function twig_render_template($template, $variables = array()) {
+    if (file_exists($template)) {
         $twig = twig_get_instance();
         $template = $twig->loadTemplate($template);
         $content = $template->render($variables);
-    } catch (Exception $e) {
-        drupal_set_message($e->getMessage(),'error');
-        echo '<pre>';
-        echo $e->getMessage() .' in ' .$e->getFile();
-        echo '<hr>';
-        echo $e->getTraceAsString();
-        echo '</pre>';
-
+        return $content;
     }
-    return $content;
 }
 
 /**
- * Builds and caches the default template locations list
- * needed for the fallback rendering, cause you can not
- * loop things trough drupal twice
- *
- * @return <array>
+ * Clears the entire template cache folder
+ * @return void
  */
-function twig_get_current_theme_template_path() {
-    $foundTemplates = array();
-    $path = drupal_get_path('theme', variable_get('theme_default','null'));
-    if (is_dir($path . '/templates')) {
-        $path .= '/templates';
-    }
-    return ($path);
-
+function twig_clear_cache() {
+    twig_get_instance()->flushCompilerCache();
+    watchdog('twig', 'All caches cleared');
 }
 
-/**
- * init or set the cache for twig to store compiled templates
- * @return <string> path to twig cache
- */
-function twig_init_cache($clear=false) {
-    $path = 'public://twig_cache';
-    if (file_prepare_directory($path,FILE_CREATE_DIRECTORY)) {
-        $path = drupal_realpath($path);
-        if ($clear) {
-            foreach(glob($path.'/*.*') as $file) {
-                unlink($file);
-            }
-        }
-        return $path;
-    }
-    return false;
-}
 
 /*
  * Returns a singleton version of the twig template engine
@@ -117,16 +86,18 @@ function twig_get_instance() {
     static $twig_engine;
     if (!is_object($twig_engine)) {
         $twigEnvironment = array();
-        $cache = twig_init_cache(true);
+        $twigEnvironment['autoescape'] = false; // Automatically escape all output
+        $twigEnvironment['auto_reload'] = true; //Whether to reload the template if the original source changed.
+        $twigEnvironment['debug'] = false; // When set to `true`, the generated templates have a __toString() method
+        $cache = 'public://twig_cache';
         if ($cache) {
             $twigEnvironment['cache'] = $cache;
         }
-        $loader          = new TFD_Loader_Filesystem();
-        $twig_engine     = new TFD_Environment($loader,$twigEnvironment);
-        $twig_engine->addExtension(new Twig_Extension_Escaper(false));
+
+
+        $loader = new TFD_Loader_Filesystem();
+        $twig_engine = new TFD_Environment($loader, $twigEnvironment);
         $twig_engine->addExtension(new TFD_Extension());
-
-
     }
     return $twig_engine;
 }
@@ -138,15 +109,15 @@ function twig_get_instance() {
  * @param <string> $class
  */
 function twig_autoload($class) {
-    $class = str_replace('_', '/', $class).'.php';
-    $engine_path = null;
-    if  (0 === strpos($class, 'TFD')) {
-        $engine_path = drupal_get_path('theme_engine', 'twig') . '/lib/';
+    global $theme_info;
+    $class = str_replace('_', '/', $class) . '.php';
+    $engine_path = dirname($theme_info->owner);
+    if (0 === strpos($class, 'TFD')) {
+        $engine_path .= '/lib/';
+        require_once $engine_path . $class;
     }
-    else if  (0 === strpos($class, 'Twig')) {
-        $engine_path = drupal_get_path('theme_engine', 'twig') . '/lib/Twig/lib/';
-    }
-    if($engine_path && file_exists($engine_path . $class)) {
+    else if (0 === strpos($class, 'Twig')) {
+        $engine_path .= '/lib/Twig/lib/';
         require_once $engine_path . $class;
     }
 }
