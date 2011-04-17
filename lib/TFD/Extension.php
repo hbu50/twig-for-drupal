@@ -76,11 +76,11 @@ class TFD_Extension extends Twig_Extension {
  * @param  $repl
  * @return mixed
  */
-function TFD_str_replace($haystack, $needle, $repl) {
+function tfd_str_replace($haystack, $needle, $repl) {
     return str_replace($needle, $repl, $haystack);
 }
 
-function TFD_re_replace($haystack, $needle, $repl) {
+function tfd_re_replace($haystack, $needle, $repl) {
     return preg_replace($needle, $repl, $haystack);
 }
 
@@ -125,7 +125,7 @@ function tfd_defaults_filter($value, $defaults = null) {
 }
 
 
-function TFD_dump($env, $var, $function = null) {
+function tfd_dump($env, $var, $function = null) {
     static $functions = array('dpr' => null, 'dpm' => null, 'print_r' => 'p', 'var_dump' => 'v');
     if (empty($function)) {
         if (module_exists('devel')) {
