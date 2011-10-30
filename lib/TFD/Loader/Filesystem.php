@@ -14,6 +14,29 @@ class TFD_Loader_Filesystem extends Twig_Loader_Filesystem {
         $this->resolverCache = array();
     }
 
+    public function getCacheKey($name) {
+         if(!isset($this->cache[$name])) {
+             $found = false;
+            if (is_readable($name)) {
+                $this->cache[$name] = $name;
+                $found = true;
+            } else {
+                $paths = twig_get_discovered_templates();
+                foreach($paths as $path){
+                    $completeName = $path . '/' . $name;
+                    if (is_readable($completeName)) {
+                       $this->cache[$name] = $completeName;
+                       $found = true;
+                       break;
+                    }
+                }
+              #
+            }
+            if (!$found) throw new RuntimeException(sprintf('Unable to load template "%s"',$name));
+        }
+        return $this->cache[$name];
+    }
+
 
     public function getSource($filename) {
         return file_get_contents($this->getCacheKey($filename));

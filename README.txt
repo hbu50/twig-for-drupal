@@ -4,14 +4,20 @@
 
 For more information about Twig, visit http://twig-project.org
 
-To use this engine you will need to clone or download the 1.0 version from https://github.com/fabpot/Twig/tree/v1.0.0
+To use this engine you will need to clone Twig from git (https://github.com/fabpot/Twig.git)
+
+(#git clone https://github.com/fabpot/Twig.git ./lib/Twig)
 
 And you will end up with a structure something like this
 
 DRUPAL_ROOT/themes/engines/twig/twig.engine
-DRUPAL_ROOT/themes/engines/twig/lib/...
+DRUPAL_ROOT/themes/engines/twig/lib/Twig...
 
 To create a theme for twig, simply set engine = twig in your theme.info and start creating templates
+
+
+##More information and usage of Twig##
+Please refer to the original project documentation found on http:/twig-project.org
 
 ##Drupal specific extensions
 
@@ -80,9 +86,6 @@ Or just map it to an php function
 		$filters['rot13'] = new Twig_Filter_Function('str_rot13');
 	}
 Jups.. it's that easy :)
-
-
-More to come...
 
 
 	

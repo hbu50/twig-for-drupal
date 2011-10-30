@@ -3,7 +3,7 @@
  *
  * You *need* PHP 5.2.x or higher to use code.
  *
- * @version 7.0.1.0
+ * @version 7.0.1.1
  * @author René Bakx
  *
  */
@@ -17,7 +17,7 @@ spl_autoload_register('twig_autoload');
  * @return string
  */
 function twig_extension() {
-    return ".tpl.html";
+    return ".tpl.twig";
 }
 
 
@@ -85,21 +85,40 @@ function twig_clear_cache() {
 function twig_get_instance() {
     static $twig_engine;
     if (!is_object($twig_engine)) {
+        global $theme_info;
         $twigEnvironment = array();
         $twigEnvironment['autoescape'] = false; // Automatically escape all output
         $twigEnvironment['auto_reload'] = true; //Whether to reload the template if the original source changed.
         $twigEnvironment['debug'] = false; // When set to `true`, the generated templates have a __toString() method
-        $cache = 'public://twig_cache';
+        $cache = 'public://twig_cache' . '/' . $theme_info->name;
         if ($cache) {
             $twigEnvironment['cache'] = $cache;
         }
-
-
         $loader = new TFD_Loader_Filesystem();
         $twig_engine = new TFD_Environment($loader, $twigEnvironment);
         $twig_engine->addExtension(new TFD_Extension());
     }
     return $twig_engine;
+}
+
+// Todo refactor into something like drupal_find_theme_templates();
+function twig_get_discovered_templates() {
+    $tplFolders = cache_get('twig_tpl_paths');
+    if ($tplFolders->data == "") {
+        $currentPath = drupal_get_path('theme', variable_get('theme_default', 'null'));
+        $paths[] = $currentPath;
+        $tplHooks = theme_get_registry();
+        foreach ($tplHooks as $hook => $data) {
+            if (is_array($data["theme paths"])) $paths = array_merge($paths, $data["theme paths"]);
+            $paths[] = $data["theme path"];
+        }
+        $tempFolders = array_unique($paths);
+        cache_set('twig_tpl_paths', $tempFolders, 'cache', CACHE_PERMANENT);
+        $return = $tempFolders;
+    } else {
+        $return = $tplFolders->data;
+    }
+    return $return;
 }
 
 /**
