@@ -12,6 +12,11 @@ class TFD_Environment extends Twig_Environment {
 
     public function __construct(Twig_LoaderInterface $loader = null, $options = array()) {
         $this->fileExtension = twig_extension();
+        // overrule the default template class
+        if ($options['autorender']){
+            $options['base_template_class'] = 'TFD_Template';
+            unset($options['autorender']);
+        }
         parent::__construct($loader, $options);
     }
 
@@ -60,6 +65,7 @@ class TFD_Environment extends Twig_Environment {
     }
 
     protected function writeCacheFile($file, $content) {
+
         if (!is_dir(dirname($file))) {
             mkdir(dirname($file), 0777, true);
         }
