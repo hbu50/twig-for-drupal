@@ -9,13 +9,17 @@ class TFD_Environment extends Twig_Environment {
 
     protected $templateClassPrefix = '__TFDTemplate_';
     protected $fileExtension = 'tpl.twig';
+    protected $autorender = false;
 
     public function __construct(Twig_LoaderInterface $loader = null, $options = array()) {
         $this->fileExtension = twig_extension();
-        // overrule the default template class
-        if ($options['autorender']){
+        $options = array_merge(array(
+            'autorender' => true,
+        ), $options);
+       // Auto render means, overrule default class
+        if ($options['autorender']) {
             $options['base_template_class'] = 'TFD_Template';
-            unset($options['autorender']);
+            $this->autorender = true;
         }
         parent::__construct($loader, $options);
     }
@@ -24,6 +28,9 @@ class TFD_Environment extends Twig_Environment {
         return $name = preg_replace('/\.' . $this->fileExtension . '$/', '', $this->loader->getCacheKey($name));
     }
 
+    public function isAutorender(){
+        return $this->autorender;
+    }
     /**
      * returns the name of the class to be created
      * which is also the name of the cached instance

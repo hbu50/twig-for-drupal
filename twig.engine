@@ -3,14 +3,21 @@
  *
  * You *need* PHP 5.2.x or higher to use code.
  *
- * @version 7.0.1.1
+ * @version 7.0.1.2
  * @author René Bakx
  *
  */
 
 
-/* register autoloader system */
-spl_autoload_register('twig_autoload');
+/**
+ * Register the needed classes with the autoloader
+ */
+
+$autoloader = UniversalClassLoader::getInstance();
+$autoloader->registerPrefixes(array(
+    'Twig_' => DRUPAL_ROOT . '/sites/all/libraries',
+    'TFD_' => DRUPAL_ROOT . '/sites/all/libraries',
+));
 
 /**
  * registers the .tpl.html extension for twig templates
@@ -60,12 +67,19 @@ function twig_theme($existing, $type, $theme, $path) {
  * @return <string> rendered template
  */
 function twig_render_template($template, $variables = array()) {
+    $content = '';
     if (file_exists($template)) {
-        $twig = twig_get_instance();
-        $template = $twig->loadTemplate($template);
-        $content = $template->render($variables);
-        return $content;
+        try {
+            $twig = twig_get_instance();
+            $template = $twig->loadTemplate($template);
+            $content = $template->render($variables);
+        } catch (Exception $e) {
+            $content = t('Twig error "!error"', array('!error' => $e->getMessage()));
+        }
+    } else {
+        $content = t('Template (!template) not found ', array('!template' => $template));
     }
+    return $content;
 }
 
 /**
@@ -113,30 +127,10 @@ function twig_get_discovered_templates() {
             $paths[] = $data["theme path"];
         }
         $tempFolders = array_unique($paths);
-        cache_set('twig_tpl_paths', $tempFolders, 'cache', CACHE_PERMANENT);
+        cache_set('twig_tpl_paths', $tempFolders, 'cache', CACHE_TEMPORARY);
         $return = $tempFolders;
     } else {
         $return = $tplFolders->data;
     }
     return $return;
-}
-
-/**
- * Autoloads either TFD_ or Twig_ classes
- * engine
- *
- * @param <string> $class
- */
-function twig_autoload($class) {
-    global $theme_info;
-    $class = str_replace('_', '/', $class) . '.php';
-    $engine_path = dirname($theme_info->owner);
-    if (0 === strpos($class, 'TFD')) {
-        $engine_path .= '/lib/';
-        require_once $engine_path . $class;
-    }
-    else if (0 === strpos($class, 'Twig')) {
-        $engine_path .= '/lib/Twig/lib/';
-        require_once $engine_path . $class;
-    }
 }

@@ -8,13 +8,33 @@
 
 class TFD_Extension extends Twig_Extension {
 
+    public function getGlobals() {
+        return array(
+            'base_path' => base_path(),
+            'path_to_theme' => path_to_theme(),
+        );
+    }
+
+    public function getNodeVisitors()
+      {
+          return array(new TFD_NodeVisitor());
+      }
+
+    public function getOperators() {
+        return array(
+            array(), // There are no UNARY operators
+            array( // Just map || and && for convience to developers
+                '||' => array('precedence' => 10, 'class' => 'Twig_Node_Expression_Binary_Or', 'associativity' => Twig_ExpressionParser::OPERATOR_LEFT),
+                '&&' => array('precedence' => 15, 'class' => 'Twig_Node_Expression_Binary_And', 'associativity' => Twig_ExpressionParser::OPERATOR_LEFT))
+        );
+    }
+
     /* registers the drupal specific tags */
     public function getTokenParsers() {
         $parsers = array();
         $parsers[] = new TFD_TokenParser_FunctionCall('theme');
         $parsers[] = new TFD_TokenParser_FunctionCall('render');
         $parsers[] = new TFD_TokenParser_FunctionCall('hide');
-        $parsers[] = new TFD_TokenParser_FunctionCall('path_to_theme', 'tfd_path_to_theme');
         $parsers[] = new TFD_TokenParser_With();
         $parsers[] = new TFD_TokenParser_Switch();
         $parsers[] = new TFD_TokenParser_Unset();
@@ -35,8 +55,8 @@ class TFD_Extension extends Twig_Extension {
         $filters['ucfirst'] = new Twig_Filter_Function('ucfirst');
 
         // Drupal 7 render'n'hide
-        $filters['render'] = new Twig_Filter_Function('tfd_render');
-        $filters['hide'] = new Twig_Filter_Function('tfd_hide');
+        $filters['render'] = new Twig_Filter_Function('render');
+        $filters['hide'] = new Twig_Filter_Function('hide');
 
         $filters['image_url'] = new Twig_Filter_Function('tfd_image_url');
         $filters['image_size'] = new Twig_Filter_Function('tfd_image_size');
@@ -45,7 +65,7 @@ class TFD_Extension extends Twig_Extension {
         // RB Backwards compatible with old twig for drupal templates
         $filters['imagecache_url'] = $filters['image_url'];
         $filters['imagecache_size'] = $filters['image_size'];
-
+        // RB TODO Refactor this into @see http://twig.sensiolabs.org/doc/advanced.html
         $filters = array_merge($filters, module_invoke_all('twig_filters', $filters));
         return $filters;
     }
@@ -58,7 +78,7 @@ class TFD_Extension extends Twig_Extension {
     }
 
     public function getName() {
-        return 'drupal';
+        return 'twig_for_drupal';
     }
 }
 
@@ -82,23 +102,6 @@ function tfd_str_replace($haystack, $needle, $repl) {
 
 function tfd_re_replace($haystack, $needle, $repl) {
     return preg_replace($needle, $repl, $haystack);
-}
-
-
-function tfd_render($var) {
-    if (is_array($var) || is_object($var)) {
-        return render($var);
-    }
-}
-
-function tfd_hide($var) {
-    if (is_array($var) || is_object($var)) {
-        return hide($var);
-    }
-}
-
-function tfd_path_to_theme() {
-    return base_path() . path_to_theme();
 }
 
 

@@ -1,12 +1,10 @@
 <?php
 /**
- * @file:  class TFD_Template
- * @author: Rene Bakx (rene@71media.net)
- * @date: 05-11-2011
- * @description: Extends the default template class to make it easier
- * to render drupal content without actually stating that you want
- * to render a render array (|render)
+ * @author: Rene Bakx (rene@7renebakx.nl)
  *
+ * @description: Extends the default template class to make it easier
+ * to output drupal content without actually stating that you want
+ * to render a renderable array ( aka {{varname|render()}}
  *
  */
 
@@ -39,15 +37,13 @@ class TFD_Template extends Twig_Template {
      * @see parent::getAttribute
      */
     protected function getAttribute($object, $item, array $arguments = array(), $type = Twig_TemplateInterface::ANY_CALL, $isDefinedTest = false, $ignoreStrictCheck = false) {
-        // array
         if (Twig_TemplateInterface::METHOD_CALL !== $type) {
-            if ((is_array($object) && array_key_exists($item, $object))
-                || ($object instanceof ArrayAccess && isset($object[$item]))
-            ) {
-                if ($isDefinedTest) {
+            if ((is_array($object) && array_key_exists($item, $object)) || ($object instanceof ArrayAccess && isset($object[$item]))) {
+                if (!$isDefinedTest) {
+                    return render($object[$item]);
+                } else {
                     return true;
                 }
-                return tfd_render(($object[$item]));
             } else {
                 return parent::getAttribute($object, $item, $arguments, $type, $isDefinedTest, $ignoreStrictCheck);
             }

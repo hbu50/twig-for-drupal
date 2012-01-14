@@ -1,9 +1,5 @@
 <?php
 /**
- * @author Gerard van Helden <gerard@zicht.nl>
- * @copyright Zicht Online <http://zicht.nl>
- */
-/**
  * Tokenparser to parse an arbitrary functioncall, in the format:
  * {% functionName arg1, arg2, arg3 ... %}
  *
