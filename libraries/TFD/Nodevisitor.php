@@ -2,10 +2,10 @@
 /**
  *
  * @description : TFD_Nodevisitor checks of the auto_render is set in the
- * twig environment, and if so it converts nodes of the Twig_Node_Print into
+ * twig environment, and if so it converts nodes of Twig_Node_Print type into
  * TFD_Node_Render types.
  *
- * In a drupal 7 template a single variable can contain an array, but Twig only
+ * In a drupal 7 template a single variable can contain an array, but Twig just
  * triggers the Twig_Template::getAttribute only for variables that are an object or
  * array.
  *
@@ -15,7 +15,6 @@
  * @author: Rene Bakx (rene@renebakx.nl)
  */
 
-//** RB TODO, dit moet het zelfde gaan doen als de Escaper visitor. Twig_Node_Print vervangen voor TFD_Node_Print */
 class TFD_Nodevisitor implements Twig_NodeVisitorInterface {
     /**
      * Called before child nodes are visited.
