@@ -16,6 +16,15 @@ class TFD_Node_With extends Twig_Node
         );
     }
 
+
+    function hasOption($value)
+    {
+        return
+                $this->getAttribute('options')
+                && in_array($value, $this->getAttribute('options'));
+    }
+
+
     public function compile($compiler)
     {
         $compiler
@@ -28,9 +37,9 @@ class TFD_Node_With extends Twig_Node
                 ->write("\n")
                 ->write('array_push($withStack, $context);' . "\n");
 
-        if ($this->attributes['options']['sandboxed']) {
+        if ($this->hasOption('sandboxed')) {
             $compiler->write('$values = array();' . "\n");
-        } elseif ($this->attributes['options']['merged']) {
+        } elseif ($this->hasOption('merged')) {
             $compiler->write('$values = $context;' . "\n");
         } else {
             $compiler->write('$values = array(\'_parent\' => $context);');
@@ -40,8 +49,7 @@ class TFD_Node_With extends Twig_Node
                 ->write('$values = array_merge(' . "\n")
                 ->indent()
                 ->write('$values');
-        
-        foreach ($this->attributes['items'] as $argument) {
+        foreach ($this->getAttribute('items') as $argument) {
             $compiler->raw(',' . "\n");
             $this->compileArgument($compiler, $argument);
         }
@@ -52,7 +60,7 @@ class TFD_Node_With extends Twig_Node
                 ->write(");\n");
         $compiler
                 ->write('$context = $values;')
-                ->subcompile($this->body)
+                ->subcompile($this->getNode('body'))
                 ->write('$context = array_pop($withStack);' . "\n");
     }
 

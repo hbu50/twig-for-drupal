@@ -2,54 +2,55 @@
 /**
  * @author Gerard van Helden <gerard@zicht.nl>
  * @copyright Zicht Online <http://zicht.nl>
- *
  */
-
+ 
 class TFD_Node_Switch extends Twig_Node {
     public function __construct(Twig_NodeInterface $cases, Twig_NodeInterface $expression, $line) {
         parent::__construct(
-                array(
+            array(
                 'expression' => $expression,
                 'cases' => $cases
-                ),
-                array(),
-                $line
+            ),
+            array(),
+            $line
         );
     }
 
+
     public function compile($compiler) {
         $compiler->addDebugInfo($this);
+
         $compiler
                 ->write('switch(')
-                ->subcompile($this->expression)
+                ->subcompile($this->getNode('expression'))
                 ->raw(") {\n")
                 ->indent();
 
-
-        $total = count($this->cases);
-        $counter = 0;
-        foreach($this->cases->nodes as $node) {
-            if(is_null($node['expression'])) {
+        $total = count($this->getNode('cases'));
+        for($i = 0; $i < $total; $i ++ ) {
+            $expr = $this->getNode('cases')->getNode($i)->getAttribute('expression');
+            $body = $this->getNode('cases')->getNode($i)->getNode('body');
+            if(is_null($expr)) {
                 $compiler
                         ->write('default')
                         ->raw(":\n");
-
             } else {
-                foreach($node['expression'] as $expression) {
+                foreach($expr as $subExpr) {
                     $compiler
                             ->write('case ')
-                            ->subcompile($expression)
-                            ->raw(":\n");
+                            ->subcompile($subExpr)
+                            ->raw(":\n")
+                    ;
                 }
             }
             $compiler->indent();
-            $compiler->subcompile($node->body);
-            if (!$node->attributes['fallthrough'] || $counter+1 >= $total){
-                    $compiler->write("break;\n");
-             }
+            $compiler->subcompile($body);
+            if($i +1 >= $total || !$this->getNode('cases')->getNode($i+1)->getAttribute('fallthrough')) {
+                $compiler->write("break;\n");
+            }
             $compiler->outdent();
-            $counter++;
         }
+
         $compiler->outdent()->write('}');
-    }
+   }
 }
