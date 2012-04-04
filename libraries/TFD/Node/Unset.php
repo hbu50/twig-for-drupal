@@ -8,9 +8,8 @@ class TFD_Node_Unset extends Twig_Node {
     public function compile($compiler) {
         $compiler
                 ->addDebugInfo($this)
-                ->write('unset(')
-                ->subcompile($this->getAttribute('expr'))
-                ->raw(");\n")
-        ;
+                ->write("unset(\$context['")
+                ->raw($this->attributes['expr']['name'])
+                ->raw("']);\n");
     }
 }
