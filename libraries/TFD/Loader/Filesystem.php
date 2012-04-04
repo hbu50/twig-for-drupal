@@ -13,13 +13,12 @@ class TFD_Loader_Filesystem extends Twig_Loader_Filesystem {
     public function __construct() {
         parent::__construct(array());
         $this->resolverCache = array();
-        if (!extension_loaded('apc')) {
+        if (extension_loaded('apc')) {
             global $drupal_hash_salt;
             $this->apcprefix = 'tfd.' . $drupal_hash_salt . '.';
             if ($resolvercache = apc_fetch($this->apcprefix . 'resolver')) {
                 $this->resolverCache = $resolvercache;
             }
-
         }
     }
 

@@ -2,10 +2,10 @@
 /**
  *
  * @description : TFD_Nodevisitor checks of the auto_render is set in the
- * twig environment, and if so it converts nodes of Twig_Node_Print type into
+ * twig environment, and if so it converts nodes of the Twig_Node_Print into
  * TFD_Node_Render types.
  *
- * In a drupal 7 template a single variable can contain an array, but Twig just
+ * In a drupal 7 template a single variable can contain an array, but Twig only
  * triggers the Twig_Template::getAttribute only for variables that are an object or
  * array.
  *
@@ -51,6 +51,4 @@ class TFD_Nodevisitor implements Twig_NodeVisitorInterface {
     function getPriority() {
         return 10;
     }
-
-
 }
