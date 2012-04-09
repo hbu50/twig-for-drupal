@@ -39,7 +39,7 @@ class TFD_Nodevisitor implements Twig_NodeVisitorInterface {
     function leaveNode(Twig_NodeInterface $node, Twig_Environment $env) {
         if ($node instanceof Twig_Node_Print && $node->getNode('expr') instanceof Twig_Node_Expression_Name) {
             if ($env->isAutorender()) {
-                $node = new TFD_Node_Print($node->getNode('expr'), $node->getLine(), $node->getNodeTag());
+                $node = new TFD_Node_Render($node->getNode('expr'), $node->getLine(), $node->getNodeTag());
             }
         }
         return $node;

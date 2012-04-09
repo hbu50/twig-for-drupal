@@ -6,9 +6,11 @@
 * http://renebakx.nl/twig-for-drupal
 */
 
-class TFD_Extension extends Twig_Extension {
+class TFD_Extension extends Twig_Extension
+{
 
-    public function getGlobals() {
+    public function getGlobals()
+    {
         return array(
             'base_path' => base_path(),
             'path_to_theme' => path_to_theme(),
@@ -16,11 +18,12 @@ class TFD_Extension extends Twig_Extension {
     }
 
     public function getNodeVisitors()
-      {
-          return array(new TFD_NodeVisitor());
-      }
+    {
+        return array(new TFD_NodeVisitor());
+    }
 
-    public function getOperators() {
+    public function getOperators()
+    {
         return array(
             array(), // There are no UNARY operators
             array( // Just map || and && for convience to developers
@@ -30,7 +33,8 @@ class TFD_Extension extends Twig_Extension {
     }
 
     /* registers the drupal specific tags */
-    public function getTokenParsers() {
+    public function getTokenParsers()
+    {
         $parsers = array();
         $parsers[] = new TFD_TokenParser_FunctionCall('theme');
         $parsers[] = new TFD_TokenParser_FunctionCall('render');
@@ -42,7 +46,8 @@ class TFD_Extension extends Twig_Extension {
     }
 
     /* registers the drupal specific filters */
-    public function getFilters() {
+    public function getFilters()
+    {
         $filters = array();
         $filters['replace'] = new Twig_Filter_Function('tfd_str_replace');
         $filters['re_replace'] = new Twig_Filter_Function('tfd_re_replace');
@@ -54,7 +59,7 @@ class TFD_Extension extends Twig_Extension {
         $filters['t'] = new Twig_Filter_Function('t');
         $filters['ucfirst'] = new Twig_Filter_Function('ucfirst');
 
-        // Drupal 7 render'n'hide
+        // Drupal 7 render'n'hide as filters
         $filters['render'] = new Twig_Filter_Function('render');
         $filters['hide'] = new Twig_Filter_Function('hide');
 
@@ -65,19 +70,22 @@ class TFD_Extension extends Twig_Extension {
         // RB Backwards compatible with old twig for drupal templates
         $filters['imagecache_url'] = $filters['image_url'];
         $filters['imagecache_size'] = $filters['image_size'];
-        // RB TODO Refactor this into @see http://twig.sensiolabs.org/doc/advanced.html
-        $filters = array_merge($filters, module_invoke_all('twig_filters', $filters));
+
+
+        $filters = array_merge($filters, module_invoke_all('twig_filter', $filters, $this));
         return $filters;
     }
 
 
-    public function getTests() {
+    public function getTests()
+    {
         $ret = array();
         $ret['property'] = new Twig_Test_Function('tfd_property_test');
         return $ret;
     }
 
-    public function getName() {
+    public function getName()
+    {
         return 'twig_for_drupal';
     }
 }
@@ -96,16 +104,19 @@ class TFD_Extension extends Twig_Extension {
  * @param  $repl
  * @return mixed
  */
-function tfd_str_replace($haystack, $needle, $repl) {
+function tfd_str_replace($haystack, $needle, $repl)
+{
     return str_replace($needle, $repl, $haystack);
 }
 
-function tfd_re_replace($haystack, $needle, $repl) {
+function tfd_re_replace($haystack, $needle, $repl)
+{
     return preg_replace($needle, $repl, $haystack);
 }
 
 
-function tfd_date_format_filter($timestamp, $format = '%d-%m-%Y %H:%M', $mode = 'strftime') {
+function tfd_date_format_filter($timestamp, $format = '%d-%m-%Y %H:%M', $mode = 'strftime')
+{
     switch ($mode) {
         case 'strftime':
         case 'date':
@@ -117,7 +128,8 @@ function tfd_date_format_filter($timestamp, $format = '%d-%m-%Y %H:%M', $mode = 
 }
 
 
-function tfd_defaults_filter($value, $defaults = null) {
+function tfd_defaults_filter($value, $defaults = null)
+{
     $args = func_get_args();
     $args = array_filter($args);
     if (count($args)) {
@@ -128,16 +140,14 @@ function tfd_defaults_filter($value, $defaults = null) {
 }
 
 
-function tfd_dump($env, $var, $function = null) {
+function tfd_dump($env, $var = null,$function = null)  {
+
     static $functions = array('dpr' => null, 'dpm' => null, 'print_r' => 'p', 'var_dump' => 'v');
     if (empty($function)) {
-        if (module_exists('devel')) {
-            $function = array_shift(array_keys($functions));
-        } else {
+        if (!module_exists('devel')) {
             $function = array_pop(array_keys($functions));
         }
     }
-
     if (array_key_exists($function, $functions) && is_callable($function)) {
         call_user_func($function, $var);
     } else {
@@ -156,7 +166,8 @@ function tfd_dump($env, $var, $function = null) {
 }
 
 
-function tfd_image_url($filepath, $preset = null) {
+function tfd_image_url($filepath, $preset = null)
+{
     if (is_array($filepath)) {
         $filepath = $filepath['filepath'];
     }
@@ -168,7 +179,8 @@ function tfd_image_url($filepath, $preset = null) {
 }
 
 
-function tfd_image_size($filepath, $preset, $asHtml = true) {
+function tfd_image_size($filepath, $preset, $asHtml = true)
+{
     if (is_array($filepath)) {
         $filepath = $filepath['filepath'];
     }
@@ -182,7 +194,8 @@ function tfd_image_size($filepath, $preset, $asHtml = true) {
 }
 
 
-function tfd_url($item, $options = array()) {
+function tfd_url($item, $options = array())
+{
     if (is_numeric($item)) {
         $ret = url('node/' . $item, (array)$options);
     } else {
@@ -192,7 +205,8 @@ function tfd_url($item, $options = array()) {
 }
 
 
-function tfd_property_test($element, $propertyName, $value = true) {
+function tfd_property_test($element, $propertyName, $value = true)
+{
     return array_key_exists("#$propertyName", $element) && $element["#$propertyName"] == $value;
 }
 

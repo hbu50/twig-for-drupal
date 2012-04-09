@@ -28,11 +28,11 @@ class TFD_Node_FunctionCall extends Twig_Node {
         $this->functionName = $functionName;
     }
 
-    
+
     public function compile(Twig_Compiler $compiler) {
         $compiler->addDebugInfo($this);
         if($this->isOutput) {
-            $compiler->write('echo ')->raw($this->functionName);    
+            $compiler->write('echo ')->raw($this->functionName);
         } else {
             $compiler->write($this->functionName);
         }

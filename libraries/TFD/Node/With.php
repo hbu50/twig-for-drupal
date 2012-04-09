@@ -25,7 +25,7 @@ class TFD_Node_With extends Twig_Node
     }
 
 
-    public function compile($compiler)
+    public function compile(Twig_Compiler $compiler)
     {
         $compiler
                 ->addDebugInfo($this)

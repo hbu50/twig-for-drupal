@@ -17,7 +17,7 @@ class TFD_Node_Switch extends Twig_Node {
     }
 
 
-    public function compile($compiler) {
+    public function compile(Twig_Compiler $compiler) {
         $compiler->addDebugInfo($this);
 
         $compiler
