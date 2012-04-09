@@ -16,7 +16,7 @@ class TFD_Environment extends Twig_Environment {
         $options = array_merge(array(
             'autorender' => true,
         ), $options);
-       // Auto render means, overrule default class
+        // Auto render means, overrule default class
         if ($options['autorender']) {
             $options['base_template_class'] = 'TFD_Template';
             $this->autorender = true;
@@ -28,9 +28,10 @@ class TFD_Environment extends Twig_Environment {
         return $name = preg_replace('/\.' . $this->fileExtension . '$/', '', $this->loader->getCacheKey($name));
     }
 
-    public function isAutorender(){
+    public function isAutorender() {
         return $this->autorender;
     }
+
     /**
      * returns the name of the class to be created
      * which is also the name of the cached instance
@@ -72,20 +73,24 @@ class TFD_Environment extends Twig_Environment {
     }
 
     protected function writeCacheFile($file, $content) {
-
-        if (!is_dir(dirname($file))) {
-            mkdir(dirname($file), 0777, true);
-        }
-
-        $tmpFile = tempnam(dirname($file), basename($file));
-        if (false !== @file_put_contents($tmpFile, $content)) {
-            // rename does not work on Win32 before 5.2.6
-            if (@rename($tmpFile, $file) || (@copy($tmpFile, $file) && unlink($tmpFile))) {
-                @chmod($file, 0644);
-                return;
+        try {
+            if (!is_dir(dirname($file))) {
+                mkdir(dirname($file), 0777, true);
             }
+            $tmpFile = tempnam(dirname($file), basename($file));
+            if (false !== @file_put_contents($tmpFile, $content)) {
+                // rename does not work on Win32 before 5.2.6
+                if (@rename($tmpFile, $file) || (@copy($tmpFile, $file) && unlink($tmpFile))) {
+                    @chmod($file, 0644);
+                    // Just in case apc.stat = 0, force the cache file into APC cache!
+                    if (extension_loaded('apc')) {
+                        apc_compile_file($file, $content);
+                    }
+                }
+            }
+        } catch (Exception $exception) {
+            throw new Twig_Error_Runtime(sprintf('Failed to write cache file "%s".', $file));
         }
-        throw new Twig_Error_Runtime(sprintf('Failed to write cache file "%s".', $file));
     }
 }
 
