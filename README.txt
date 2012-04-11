@@ -10,15 +10,16 @@ your sites/all/libraries folder
 
 #git clone https://github.com/fabpot/Twig.git ./sites/all/libraries/Twig
 
-And this library also cloned into /sites/all/libraries in a folder called TFD
+And this library also cloned into /sites/all/libraries in a folder called 'twig-for-drupal'
 
-#git clone https://github.com/renebakx/twig-for-druapl.git ./sites/all/libraries/TFD
+#git clone https://github.com/renebakx/twig-for-druapl.git ./sites/all/libraries/twig-for-drupal
 
 Then move the twig.engine file to ./themes/engines/twig/ so that is on the same level as the phptemplate 
 engine drupal comes with.
 
 To create a theme for twig, simply set engine = twig in your theme.info and start creating templates
 
+Or you could simply use drush and the ready made installation profile from drupal.org at http://drupal.org/sandbox/ReneB/1528480
 
 ##More information and usage of Twig##
 Please refer to the original project documentation found on http:/twig-project.org

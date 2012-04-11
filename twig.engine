@@ -15,8 +15,8 @@
 
 $autoloader = UniversalClassLoader::getInstance();
 $autoloader->registerPrefixes(array(
-    'Twig_' => DRUPAL_ROOT . '/sites/all/libraries',
-    'TFD_' => DRUPAL_ROOT . '/sites/all/libraries',
+    'Twig_' => DRUPAL_ROOT . '/sites/all/libraries/twig/lib/',
+    'TFD_' => DRUPAL_ROOT . '/sites/all/libraries/twig-for-drupal/',
 ));
 
 /**
