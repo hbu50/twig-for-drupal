@@ -23,7 +23,8 @@ $autoloader->registerPrefixes(array(
  * registers the .tpl.html extension for twig templates
  * @return string
  */
-function twig_extension() {
+function twig_extension()
+{
     return ".tpl.twig";
 }
 
@@ -35,9 +36,10 @@ function twig_extension() {
  *
  * @param <object> $theme
  */
-function twig_init($theme) {
+function twig_init($theme)
+{
     if (file_exists($file = dirname($theme->filename) . '/template.php')) {
-        require_once($file);
+       require_once($file);
     }
 }
 
@@ -51,7 +53,8 @@ function twig_init($theme) {
  * @return <array>
  */
 
-function twig_theme($existing, $type, $theme, $path) {
+function twig_theme($existing, $type, $theme, $path)
+{
     $templates = drupal_find_theme_functions($existing, array('twig', $theme));
     $templates += drupal_find_theme_templates($existing, twig_extension(), $path);
     return $templates;
@@ -66,7 +69,8 @@ function twig_theme($existing, $type, $theme, $path) {
  * @param <array> $variables variables to be assigned to template
  * @return <string> rendered template
  */
-function twig_render_template($template, $variables = array()) {
+function twig_render_template($template, $variables = array())
+{
     $content = '';
     if (file_exists($template)) {
         try {
@@ -86,7 +90,8 @@ function twig_render_template($template, $variables = array()) {
  * Clears the entire template cache folder
  * @return void
  */
-function twig_clear_cache() {
+function twig_clear_cache()
+{
     twig_get_instance()->flushCompilerCache();
     watchdog('twig', 'All caches cleared');
 }
@@ -96,7 +101,8 @@ function twig_clear_cache() {
  * Returns a singleton version of the twig template engine
  * @return <object> Twig_Environment
 */
-function twig_get_instance() {
+function twig_get_instance()
+{
     static $twig_engine;
     if (!is_object($twig_engine)) {
         global $theme_info;
@@ -115,22 +121,47 @@ function twig_get_instance() {
     return $twig_engine;
 }
 
-// Todo refactor into something like drupal_find_theme_templates();
-function twig_get_discovered_templates() {
-    $tplFolders = cache_get('twig_tpl_paths');
-    if ($tplFolders->data == "") {
-        $currentPath = drupal_get_path('theme', variable_get('theme_default', 'null'));
-        $paths[] = $currentPath;
-        $tplHooks = theme_get_registry();
-        foreach ($tplHooks as $hook => $data) {
-            if (is_array($data["theme paths"])) $paths = array_merge($paths, $data["theme paths"]);
-            $paths[] = $data["theme path"];
+// Todo refactor into something usable with core drupal_find_theme_templates();
+function twig_get_discovered_templates()
+{
+    $extension = twig_extension();
+    $implementations = array();
+
+    // Collect paths to all sub-themes grouped by base themes. These will be
+    // used for filtering. This allows base themes to have sub-themes in its
+    // folder hierarchy without affecting the base themes template discovery.
+    $theme_paths = array();
+    foreach (list_themes() as $theme_info) {
+        if (!empty($theme_info->base_theme)) {
+            $theme_paths[$theme_info->base_theme][$theme_info->name] = dirname($theme_info->filename);
         }
-        $tempFolders = array_unique($paths);
-        cache_set('twig_tpl_paths', $tempFolders, 'cache', CACHE_TEMPORARY);
-        $return = $tempFolders;
-    } else {
-        $return = $tplFolders->data;
     }
-    return $return;
+    foreach ($theme_paths as $basetheme => $subthemes) {
+        foreach ($subthemes as $subtheme => $subtheme_path) {
+            if (isset($theme_paths[$subtheme])) {
+                $theme_paths[$basetheme] = array_merge($theme_paths[$basetheme], $theme_paths[$subtheme]);
+            }
+        }
+    }
+    global $theme;
+    $subtheme_paths = isset($theme_paths[$theme]) ? $theme_paths[$theme] : array();
+
+    // Escape the periods in the extension.
+    $regex = '/' . str_replace('.', '\.', $extension) . '$/';
+    $currentPath = drupal_get_path('theme', variable_get('theme_default', 'null'));
+    // Get a listing of all template files in the path to search.
+    $files = drupal_system_listing($regex, $currentPath, 'name', 0);
+
+    // Find templates that implement registered theme hooks and include that in
+    // what is returned so that the registry knows that the theme has this
+    // implementation.
+    foreach ($files as $template => $file) {
+        // Ignore sub-theme templates for the current theme.
+        if (strpos($file->uri, str_replace($subtheme_paths, '', $file->uri)) !== 0) {
+            continue;
+        }
+
+        $implementations[] = dirname($file->uri);
+    }
+    return array_unique($implementations);
 }
