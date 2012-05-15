@@ -209,5 +209,3 @@ function tfd_property_test($element, $propertyName, $value = true)
 {
     return array_key_exists("#$propertyName", $element) && $element["#$propertyName"] == $value;
 }
-
-?>

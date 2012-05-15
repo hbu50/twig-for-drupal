@@ -271,6 +271,7 @@ class UniversalClassLoader {
                 }
             }
         }
+      throw new Exception('Could not load '.$class);
     }
 
     private function returnFile($class, $file) {

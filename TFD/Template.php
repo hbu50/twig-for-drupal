@@ -48,5 +48,6 @@ class TFD_Template extends Twig_Template {
                 return parent::getAttribute($object, $item, $arguments, $type, $isDefinedTest, $ignoreStrictCheck);
             }
         }
+      return false;
     }
 }

@@ -1,7 +1,7 @@
 <?php
 /**
  *
- * @description : TFD_Nodevisitor checks of the auto_render is set in the
+ * @description : TFD_NodeVisitor checks of the auto_render is set in the
  * twig environment, and if so it converts nodes of the Twig_Node_Print into
  * TFD_Node_Render types.
  *
@@ -15,7 +15,7 @@
  * @author: Rene Bakx (rene@renebakx.nl)
  */
 
-class TFD_Nodevisitor implements Twig_NodeVisitorInterface {
+class TFD_NodeVisitor implements Twig_NodeVisitorInterface {
     /**
      * Called before child nodes are visited.
      *
@@ -38,7 +38,8 @@ class TFD_Nodevisitor implements Twig_NodeVisitorInterface {
      */
     function leaveNode(Twig_NodeInterface $node, Twig_Environment $env) {
         if ($node instanceof Twig_Node_Print && $node->getNode('expr') instanceof Twig_Node_Expression_Name) {
-            if ($env->isAutorender()) {
+          /** @var $env TFD_Environment */
+            if ($env->isAutoRender()) {
                 $node = new TFD_Node_Render($node->getNode('expr'), $node->getLine(), $node->getNodeTag());
             }
         }

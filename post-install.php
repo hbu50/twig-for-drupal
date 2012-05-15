@@ -34,7 +34,6 @@ if (is_dir($siteroot)) {
 
 
 function copy_engine() {
-    global $success;
     if (!is_dir(ENGINE_PATH)) {
         try {
             mkdir(ENGINE_PATH);

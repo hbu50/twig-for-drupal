@@ -49,7 +49,7 @@ function twig_init($theme)
  * Registers both twig and php_template functions and templates
  * which is needed to perform the fallback to .tpl.php
  *
- * @link http://api.drupal.org/api/function/hook_theme/6
+ * @link http://api.drupal.org/api/function/hook_theme/7
  * @return <array>
  */
 

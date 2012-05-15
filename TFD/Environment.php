@@ -9,7 +9,7 @@ class TFD_Environment extends Twig_Environment {
 
     protected $templateClassPrefix = '__TFDTemplate_';
     protected $fileExtension = 'tpl.twig';
-    protected $autorender = false;
+    protected $autoRender = false;
 
     public function __construct(Twig_LoaderInterface $loader = null, $options = array()) {
         $this->fileExtension = twig_extension();
@@ -19,7 +19,7 @@ class TFD_Environment extends Twig_Environment {
         // Auto render means, overrule default class
         if ($options['autorender']) {
             $options['base_template_class'] = 'TFD_Template';
-            $this->autorender = true;
+            $this->autoRender = true;
         }
         parent::__construct($loader, $options);
     }
@@ -28,8 +28,8 @@ class TFD_Environment extends Twig_Environment {
         return $name = preg_replace('/\.' . $this->fileExtension . '$/', '', $this->loader->getCacheKey($name));
     }
 
-    public function isAutorender() {
-        return $this->autorender;
+    public function isAutoRender() {
+        return $this->autoRender;
     }
 
     /**
@@ -93,5 +93,3 @@ class TFD_Environment extends Twig_Environment {
         }
     }
 }
-
-?>
