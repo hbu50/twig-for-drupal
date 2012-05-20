@@ -91,9 +91,9 @@ class TFD_TokenParser_With extends Twig_TokenParser
             }
             $arguments[] = array('name' => $name, 'value' => $value);
 
-            $end = !$stream->test(Twig_Token::OPERATOR_TYPE, ',');
+            $end = !$stream->test(Twig_Token::PUNCTUATION_TYPE, ',');
             if (!$end) {
-                $stream->expect(Twig_Token::OPERATOR_TYPE, ',');
+                $stream->expect(Twig_Token::PUNCTUATION_TYPE, ',');
             }
         } while (!$end);
 

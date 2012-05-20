@@ -83,9 +83,6 @@ class TFD_Environment extends Twig_Environment {
                 if (@rename($tmpFile, $file) || (@copy($tmpFile, $file) && unlink($tmpFile))) {
                     @chmod($file, 0644);
                     // Just in case apc.stat = 0, force the cache file into APC cache!
-                    if (extension_loaded('apc')) {
-                        apc_compile_file($file, $content);
-                    }
                 }
             }
         } catch (Exception $exception) {

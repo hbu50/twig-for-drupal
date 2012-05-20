@@ -121,11 +121,16 @@ function twig_get_instance()
     return $twig_engine;
 }
 
-// Todo refactor into something usable with core drupal_find_theme_templates();
+/**
+ * Find templates in the enabled themes.
+ * TODO: Clean up this goo.
+ * @return array
+ */
 function twig_get_discovered_templates()
 {
+    $implementations = &drupal_static(__FUNCTION__, array());
     $extension = twig_extension();
-    $implementations = array();
+
 
     // Collect paths to all sub-themes grouped by base themes. These will be
     // used for filtering. This allows base themes to have sub-themes in its
@@ -163,5 +168,6 @@ function twig_get_discovered_templates()
 
         $implementations[] = dirname($file->uri);
     }
-    return array_unique($implementations);
+    $implementations = array_unique($implementations);
+    return $implementations;
 }
