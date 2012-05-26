@@ -18,7 +18,6 @@ class TFD_Environment extends Twig_Environment {
         ), $options);
         // Auto render means, overrule default class
         if ($options['autorender']) {
-            $options['base_template_class'] = 'TFD_Template';
             $this->autoRender = true;
         }
         parent::__construct($loader, $options);

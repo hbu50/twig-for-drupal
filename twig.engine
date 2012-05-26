@@ -55,7 +55,7 @@ function twig_init($theme)
 
 function twig_theme($existing, $type, $theme, $path)
 {
-    $templates = drupal_find_theme_functions($existing, array('twig', $theme));
+    $templates = drupal_find_theme_functions($existing, array($theme));
     $templates += drupal_find_theme_templates($existing, twig_extension(), $path);
     return $templates;
 }
@@ -128,9 +128,7 @@ function twig_get_instance()
  */
 function twig_get_discovered_templates()
 {
-    $implementations = &drupal_static(__FUNCTION__, array());
     $extension = twig_extension();
-
 
     // Collect paths to all sub-themes grouped by base themes. These will be
     // used for filtering. This allows base themes to have sub-themes in its
