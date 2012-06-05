@@ -12,7 +12,7 @@ your sites/all/libraries folder
 
 And this library also cloned into /sites/all/libraries in a folder called 'twig-for-drupal'
 
-#git clone https://github.com/renebakx/twig-for-druapl.git ./sites/all/libraries/twig-for-drupal
+#git clone https://github.com/renebakx/twig-for-drupal.git ./sites/all/libraries/twig-for-drupal
 
 Then move the twig.engine file to ./themes/engines/twig/ so that is on the same level as the phptemplate 
 engine drupal comes with.
